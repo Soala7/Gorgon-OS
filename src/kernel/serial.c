@@ -2,21 +2,19 @@
 
 // Write one byte to an x86 I/O port.
 // This is an internal helper used by the serial driver.
-static inline void outb(uint16_t port, uint8_t value)
-{
+static inline void outb(uint16_t port, uint8_t value){
     __asm__ volatile("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 // Read one byte from an x86 I/O port.
 //  This is an internal helper used by the serial driver.
-static inline uint8_t inb(uint16_t port)
-{
+static inline uint8_t inb(uint16_t port){
     uint8_t value;
     __asm__ volatile("inb %1, %0" : "=a"(value) : "Nd"(port));
     return value;
 }
 void serial_init(){
     // Serial initialization will go here.
-    outb(COM1 + 3, 0x80);     // Set DLAB = 1 (Divisor Latch Access Bit)
+    outb(COM1 + 3, 0x80); // Set DLAB = 1 (Divisor Latch Access Bit)
     outb(COM1 + 0, 0x01); // Baud divisor low byte
     outb(COM1 + 1, 0x00); // Baud divisor high byte
     outb(COM1 + 3, 0x03); // 8 data bits, no parity, 1 stop bit

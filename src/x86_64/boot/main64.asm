@@ -1,11 +1,12 @@
 global long_mode_start
 extern kernel_main
+extern idt_load
 
 section .text
 bits 64
 
 long_mode_start:
-
+    call idt_load
     ; Clear the segment registers
     mov ax, 0
     mov ss, ax

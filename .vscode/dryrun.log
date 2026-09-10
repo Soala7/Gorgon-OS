@@ -1,15 +1,5 @@
-make --dry-run --always-make --keep-going --print-directory
+make --dry-run --keep-going --print-directory
 make: Entering directory '/home/s7k11/Documents/Gorgon-OS'
-mkdir -p build/x86_64/ && \
-x86_64-elf-gcc -c -ffreestanding src/kernel/main.c -o build/x86_64/main.o
-mkdir -p build/x86_64/ && \
-x86_64-elf-gcc -c -ffreestanding src/kernel/serial.c -o build/x86_64/serial.o
-mkdir -p build/x86_64/boot/ && \
-nasm -f elf64 src/x86_64/boot/main.asm -o build/x86_64/boot/main.o
-mkdir -p build/x86_64/boot/ && \
-nasm -f elf64 src/x86_64/boot/header.asm -o build/x86_64/boot/header.o
-mkdir -p build/x86_64/boot/ && \
-nasm -f elf64 src/x86_64/boot/main64.asm -o build/x86_64/boot/main64.o
 mkdir -p dist/x86_64
 # Link all object files into the kernel
 x86_64-elf-ld -n \

@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Sep 10 01:40:50 2026
+# Make data base, printed on Thu Sep 10 12:54:54 2026
 
 # Variables
 
@@ -262,12 +262,12 @@ build/x86_64/boot/header.o: src/x86_64/boot/header.asm
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 27):
 	mkdir -p $(dir $@) && \
-	nasm -f elf64 $< -o $@
+	nasm -f elf64 -g -F dwarf $< -o $@
 
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2026-09-10 01:36:33.81906982
+#  Last modified 2026-09-10 12:43:26.466124405
 #  File has been updated.
 #  Successfully updated.
 
@@ -349,18 +349,18 @@ build/x86_64/serial.o: src/kernel/serial.c
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 37):
 	mkdir -p $(dir $@) && \
-	x86_64-elf-gcc -c -ffreestanding $< -o $@
+	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
 
 build/x86_64/boot/main64.o: src/x86_64/boot/main64.asm
-#  Implicit rule search has not been done.
  
+#  Implicit rule search has not been done.
 #  Implicit/static pattern stem: 'boot/main64'
 #  Last modified 2026-09-10 01:36:53.15652744
 #  File has been updated.
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 27):
 	mkdir -p $(dir $@) && \
-	nasm -f elf64 $< -o $@
+	nasm -f elf64 -g -F dwarf $< -o $@
 
 build/x86_64/boot/main.o: src/x86_64/boot/main.asm
 #  Implicit rule search has not been done.
@@ -370,7 +370,7 @@ build/x86_64/boot/main.o: src/x86_64/boot/main.asm
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 27):
 	mkdir -p $(dir $@) && \
-	nasm -f elf64 $< -o $@
+	nasm -f elf64 -g -F dwarf $< -o $@
 
 # Not a target:
 .SUFFIXES:
@@ -391,7 +391,7 @@ build/x86_64/main.o: src/kernel/main.c
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 37):
 	mkdir -p $(dir $@) && \
-	x86_64-elf-gcc -c -ffreestanding $< -o $@
+	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
 
 # Not a target:
 src/kernel/serial.c:
@@ -414,6 +414,6 @@ src/kernel/serial.c:
 # strcache performance: lookups = 63 / hit rate = 39%
 # hash-table stats:
 # Load=38/8192=0%, Rehash=0, Collisions=0/63=0%
-# Finished Make data base on Thu Sep 10 01:40:51 2026
+# Finished Make data base on Thu Sep 10 12:54:54 2026
 
  

@@ -25,17 +25,17 @@ x86_64_object_files := $(x86_64_c_object_files) $(x86_64_asm_object_files)
 # Assemble each x86_64 source file
 $(x86_64_asm_object_files): build/x86_64/%.o : src/x86_64/%.asm
 	mkdir -p $(dir $@) && \
-	nasm -f elf64 $< -o $@
+	nasm -f elf64 -g -F dwarf $< -o $@
 
 # Compile each x86_64 C source file
 $(x86_64_c_object_files): build/x86_64/%.o : src/x86_64/%.c
 	mkdir -p $(dir $@) && \
-	x86_64-elf-gcc -c -ffreestanding $< -o $@
+	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
 
 # Compile each kernel C source file
 $(kernel_object_files): build/x86_64/%.o : src/kernel/%.c
 	mkdir -p $(dir $@) && \
-	x86_64-elf-gcc -c -ffreestanding $< -o $@
+	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
 
 .PHONY: build-x86_64
 

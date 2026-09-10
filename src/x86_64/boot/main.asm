@@ -1,5 +1,8 @@
 global start
 extern long_mode_start
+extern gdt_load
+extern idt_load
+extern divide_by_zero_handler
 
 section .text
 bits 32
@@ -23,11 +26,14 @@ start:
     ; Enable paging and long mode
     call enable_page_table
 
-    ; Load the 64-bit Global Descriptor Table
-    lgdt [gdt64.pointer]
+    ; Load Gorgon's Global Descriptor Table
+    call gdt_load
+
+    ; Load Gorgon's Interrupt Descriptor Table
+    call idt_load
 
     ; Jump into 64-bit code
-    jmp gdt64.code_segment:long_mode_start
+    jmp 0x08:long_mode_start
 
     ; Should never be reached
     hlt
@@ -209,25 +215,3 @@ start_stack:
 
 end_stack:
 
-
-; ------------------------------------------------------------
-; Global Descriptor Table
-; ------------------------------------------------------------
-
-section .rodata
-
-gdt64:
-    ; Null descriptor
-    dq 0
-
-.code_segment equ $ - gdt64
-
-    ; 64-bit code segment
-    dq (1 << 43) | (1 << 44) | (1 << 47) | (1 << 53)
-
-.pointer:
-    ; GDT size
-    dw $ - gdt64 - 1
-
-    ; GDT address
-    dq gdt64
