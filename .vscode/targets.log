@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Sep 10 12:54:54 2026
+# Make data base, printed on Fri Sep 11 23:17:31 2026
 
 # Variables
 
@@ -17,17 +17,17 @@ LC_ALL = C
 # environment
 MXC_BIN_DIR = /usr/share/code/resources/app/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin
 # makefile (from 'Makefile', line 23)
-x86_64_object_files :=  build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o
+x86_64_object_files := build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
 # environment
 GJS_DEBUG_OUTPUT = stderr
 # makefile (from 'Makefile', line 11)
-x86_64_c_source_files := 
+x86_64_c_source_files := src/x86_64/cpu/timer.c
 # environment
 VSCODE_CRASH_REPORTER_PROCESS_TYPE = extensionHost
 # environment
 VSCODE_CWD = /home/s7k11
 # makefile (from 'Makefile', line 17)
-kernel_source_files := src/kernel/main.c src/kernel/serial.c
+kernel_source_files := src/kernel/main.c src/kernel/task.c src/kernel/serial.c
 # environment
 NVM_DIR = /home/s7k11/.nvm
 # environment
@@ -55,9 +55,9 @@ XDG_DATA_DIRS = /usr/share/cinnamon:/usr/share/gnome:/home/s7k11/.local/share/fl
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = /home/s7k11/.config/Code/CachedData/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f
+VSCODE_CODE_CACHE_PATH = /home/s7k11/.config/Code/CachedData/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c
 # environment
-XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session1
+XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session0
 # environment
 LANG = C
 # environment
@@ -65,7 +65,7 @@ XAUTHORITY = /home/s7k11/.Xauthority
 # default
 .LOADED := 
 # makefile (from 'Makefile', line 5)
-x86_64_asm_source_files := src/x86_64/boot/main.asm src/x86_64/boot/header.asm src/x86_64/boot/main64.asm
+x86_64_asm_source_files := src/x86_64/boot/main.asm src/x86_64/boot/header.asm src/x86_64/boot/main64.asm src/x86_64/cpu/pit.asm src/x86_64/cpu/pic.asm src/x86_64/cpu/gdt.asm src/x86_64/cpu/context_switch.asm src/x86_64/cpu/idt.asm
 # default
 .INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
 # makefile
@@ -84,6 +84,8 @@ VSCODE_L10N_BUNDLE_LOCATION =
 *D = $(patsubst %/,%,$(dir $*))
 # environment
 MFLAGS = -pqrR
+# environment
+SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # default
 .SHELLFLAGS := -c
 # environment
@@ -99,13 +101,13 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 337288
+VSCODE_PID = 3001
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
-SESSION_MANAGER = local/s7k11-HP-ProBook-645-G3:@/tmp/.ICE-unix/243448,unix/s7k11-HP-ProBook-645-G3:/tmp/.ICE-unix/243448
+SESSION_MANAGER = local/s7k11-HP-ProBook-645-G3:@/tmp/.ICE-unix/1628,unix/s7k11-HP-ProBook-645-G3:/tmp/.ICE-unix/1628
 # automatic
 *F = $(notdir $*)
 # environment
@@ -133,7 +135,7 @@ MAKELEVEL := 0
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
-PATH = /home/s7k11/.local/bin:/home/s7k11/.wakatime:/home/s7k11/.cargo/bin:/home/s7k11/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+PATH = /home/s7k11/.local/bin:/home/s7k11/opt/cross/bin:/home/s7k11/opt/cross/bin:/home/s7k11/.wakatime:/home/s7k11/.cargo/bin:/home/s7k11/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 # default
 MAKEFILES := 
 # environment
@@ -145,7 +147,7 @@ CINNAMON_VERSION = 6.4.14
 # environment
 APPLICATION_INSIGHTS_NO_STATSBEAT = true
 # makefile (from 'Makefile', line 14)
-x86_64_c_object_files := 
+x86_64_c_object_files := build/x86_64/cpu/timer.o
 # environment
 LESSCLOSE = /usr/bin/lesspipe %s %s
 # automatic
@@ -168,11 +170,11 @@ LOGNAME = s7k11
 GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # environment
 XDG_VTNR = 7
+ 
 # makefile (from 'Makefile', line 20)
-kernel_object_files := build/x86_64/main.o build/x86_64/serial.o
+kernel_object_files := build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o
 # makefile
 .DEFAULT_GOAL := all
- 
 # environment
 DISPLAY = :0
 # environment
@@ -180,13 +182,13 @@ USER = s7k11
 # environment
 GTK_MODULES = gail:atk-bridge
 # makefile (from 'Makefile', line 8)
-x86_64_asm_object_files := build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o
+x86_64_asm_object_files := build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
 # default
 MAKE_VERSION := 4.3
 # 'override' directive
 .SHELLSTATUS := 0
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 337288
+GIO_LAUNCHED_DESKTOP_FILE_PID = 3001
 # environment
 _ = /usr/share/code/code
 # environment
@@ -204,7 +206,7 @@ ELECTRON_RUN_AS_NODE = 1
 # environment
 VSCODE_IPC_HOOK = /run/user/1000/vscode-7cf4cc97-1.13-main.sock
 # environment
-XDG_SESSION_ID = c5
+XDG_SESSION_ID = c2
 # default
 .RECIPEPREFIX := 
 # automatic
@@ -222,7 +224,7 @@ VSCODE_ESM_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
 GDMSESSION = cinnamon
 # variable set hash-table stats:
-# Load=105/1024=10%, Rehash=0, Collisions=6/161=4%
+# Load=106/1024=10%, Rehash=0, Collisions=6/162=4%
 
 # Pattern-specific Variable Values
 
@@ -230,9 +232,9 @@ GDMSESSION = cinnamon
 
 # Directories
 
-# . (device 2050, inode 14992916): 13 files, no impossibilities.
+# . (device 2050, inode 14992916): 14 files, no impossibilities.
 
-# 13 files, no impossibilities in 1 directories.
+# 14 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -241,16 +243,37 @@ GDMSESSION = cinnamon
 # Files
 
 # Not a target:
+src/x86_64/cpu/gdt.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-10 23:11:29.406716581
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
 src/kernel/main.c:
 #  Implicit rule search has been done.
-#  Last modified 2026-09-10 01:28:52.807014
+#  Last modified 2026-09-11 03:46:30.47550592
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+src/x86_64/cpu/context_switch.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 09:48:07.292975818
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+src/x86_64/cpu/pit.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 02:14:53.714658024
 #  File has been updated.
 #  Successfully updated.
 
 # Not a target:
 src/x86_64/boot/main.asm:
 #  Implicit rule search has been done.
-#  Last modified 2026-08-30 17:28:56.199824012
+#  Last modified 2026-09-11 19:51:37.462691679
 #  File has been updated.
 #  Successfully updated.
 
@@ -258,6 +281,16 @@ build/x86_64/boot/header.o: src/x86_64/boot/header.asm
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: 'boot/header'
 #  Last modified 2026-09-10 01:36:53.143527125
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 27):
+	mkdir -p $(dir $@) && \
+	nasm -f elf64 -g -F dwarf $< -o $@
+
+build/x86_64/cpu/pit.o: src/x86_64/cpu/pit.asm
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: 'cpu/pit'
+#  Last modified 2026-09-11 02:18:59.557848212
 #  File has been updated.
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 27):
@@ -278,7 +311,7 @@ src/x86_64/boot/header.asm:
 #  File has been updated.
 #  Successfully updated.
 
-build-x86_64: build/x86_64/main.o build/x86_64/serial.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o
+build-x86_64: build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: ''
@@ -292,13 +325,13 @@ build-x86_64: build/x86_64/main.o build/x86_64/serial.o build/x86_64/boot/main.o
 # automatic
 # < := build/x86_64/main.o
 # automatic
-# + := build/x86_64/main.o build/x86_64/serial.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o
+# + := build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
 # automatic
 # % := 
 # automatic
-# ^ := build/x86_64/main.o build/x86_64/serial.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o
+# ^ := build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
 # automatic
-# ? := build/x86_64/main.o build/x86_64/serial.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o
+# ? := build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
 # automatic
 # | := 
 # variable set hash-table stats:
@@ -312,6 +345,7 @@ build-x86_64: build/x86_64/main.o build/x86_64/serial.o build/x86_64/boot/main.o
 		$(kernel_object_files) \
 		$(x86_64_object_files)
 	# Copy kernel into the ISO
+ 
 	cp dist/x86_64/kernel.bin targets/x86_64/iso/boot/kernel.bin
 	# Create bootable ISO
 	grub-mkrescue \
@@ -321,9 +355,19 @@ build-x86_64: build/x86_64/main.o build/x86_64/serial.o build/x86_64/boot/main.o
 # Not a target:
 src/x86_64/boot/main64.asm:
 #  Implicit rule search has been done.
-#  Last modified 2026-08-30 17:48:01.772458508
+#  Last modified 2026-09-10 15:15:21.332203136
 #  File has been updated.
 #  Successfully updated.
+
+build/x86_64/cpu/timer.o: src/x86_64/cpu/timer.c
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: 'cpu/timer'
+#  Last modified 2026-09-11 11:08:59.799612274
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 32):
+	mkdir -p $(dir $@) && \
+	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
 
 # Not a target:
 .DEFAULT:
@@ -344,18 +388,71 @@ all: build-x86_64
 build/x86_64/serial.o: src/kernel/serial.c
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: 'serial'
-#  Last modified 2026-09-10 01:36:53.033524458
+#  Last modified 2026-09-10 13:05:23.240982491
 #  File has been updated.
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 37):
 	mkdir -p $(dir $@) && \
 	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
 
+# Not a target:
+src/x86_64/cpu/idt.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 17:52:08.252477657
+#  File has been updated.
+#  Successfully updated.
+
 build/x86_64/boot/main64.o: src/x86_64/boot/main64.asm
- 
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: 'boot/main64'
-#  Last modified 2026-09-10 01:36:53.15652744
+#  Last modified 2026-09-10 15:15:45.76921553
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 27):
+	mkdir -p $(dir $@) && \
+	nasm -f elf64 -g -F dwarf $< -o $@
+
+build/x86_64/cpu/pic.o: src/x86_64/cpu/pic.asm
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: 'cpu/pic'
+#  Last modified 2026-09-11 02:03:20.011670397
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 27):
+	mkdir -p $(dir $@) && \
+	nasm -f elf64 -g -F dwarf $< -o $@
+
+build/x86_64/cpu/context_switch.o: src/x86_64/cpu/context_switch.asm
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: 'cpu/context_switch'
+#  Last modified 2026-09-11 09:53:12.361105538
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 27):
+	mkdir -p $(dir $@) && \
+	nasm -f elf64 -g -F dwarf $< -o $@
+
+# Not a target:
+src/x86_64/cpu/timer.c:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 10:27:09.424099298
+#  File has been updated.
+#  Successfully updated.
+
+build/x86_64/task.o: src/kernel/task.c
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: 'task'
+#  Last modified 2026-09-11 11:17:11.817886707
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 37):
+	mkdir -p $(dir $@) && \
+	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
+
+build/x86_64/cpu/gdt.o: src/x86_64/cpu/gdt.asm
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: 'cpu/gdt'
+#  Last modified 2026-09-10 23:17:03.196697598
 #  File has been updated.
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 27):
@@ -365,12 +462,19 @@ build/x86_64/boot/main64.o: src/x86_64/boot/main64.asm
 build/x86_64/boot/main.o: src/x86_64/boot/main.asm
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: 'boot/main'
-#  Last modified 2026-09-10 01:36:53.046524773
+#  Last modified 2026-09-11 19:52:02.259980397
 #  File has been updated.
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 27):
 	mkdir -p $(dir $@) && \
 	nasm -f elf64 -g -F dwarf $< -o $@
+
+# Not a target:
+src/kernel/task.c:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 11:15:55.549979915
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 .SUFFIXES:
@@ -386,34 +490,52 @@ build/x86_64/boot/main.o: src/x86_64/boot/main.asm
 build/x86_64/main.o: src/kernel/main.c
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: 'main'
-#  Last modified 2026-09-10 01:36:52.770518096
+#  Last modified 2026-09-11 03:50:34.587409053
 #  File has been updated.
 #  Successfully updated.
 #  recipe to execute (from 'Makefile', line 37):
 	mkdir -p $(dir $@) && \
 	x86_64-elf-gcc -c -ffreestanding -g -O0 $< -o $@
 
+build/x86_64/cpu/idt.o: src/x86_64/cpu/idt.asm
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: 'cpu/idt'
+#  Last modified 2026-09-11 17:52:16.142791379
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 27):
+	mkdir -p $(dir $@) && \
+	nasm -f elf64 -g -F dwarf $< -o $@
+
+# Not a target:
+src/x86_64/cpu/pic.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 01:52:39.226818774
+#  File has been updated.
+#  Successfully updated.
+
 # Not a target:
 src/kernel/serial.c:
 #  Implicit rule search has been done.
-#  Last modified 2026-09-10 01:21:49.41677382
+#  Last modified 2026-09-10 12:55:30.778286382
 #  File has been updated.
 #  Successfully updated.
 
 # files hash-table stats:
-# Load=16/1024=2%, Rehash=0, Collisions=2/43=5%
+# Load=30/1024=3%, Rehash=0, Collisions=2/71=3%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 38 / storage = 495 B / avg = 13 B
-# current buf: size = 8162 B / used = 495 B / count = 38 / avg = 13 B
+# strcache buffers: 1 (0) / strings = 61 / storage = 919 B / avg = 15 B
+# current buf: size = 8162 B / used = 919 B / count = 61 / avg = 15 B
 
-# strcache performance: lookups = 63 / hit rate = 39%
+# strcache performance: lookups = 101 / hit rate = 39%
+ 
 # hash-table stats:
-# Load=38/8192=0%, Rehash=0, Collisions=0/63=0%
-# Finished Make data base on Thu Sep 10 12:54:54 2026
+# Load=61/8192=1%, Rehash=0, Collisions=0/101=0%
+# Finished Make data base on Fri Sep 11 23:17:31 2026
 
  

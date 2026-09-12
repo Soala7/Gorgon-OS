@@ -1,4 +1,4 @@
-Absolutely. Here is a more complete, professional **M1 documentation/test record** that keeps your original serial-port notes but expands it to cover what Gorgon has actually accomplished.
+**M1 documentation/test record** that keeps your original serial-port notes but expands it to cover what Gorgon has actually accomplished.
 
 # Gorgon OS — M1: Build, Boot & Debug Foundation
 

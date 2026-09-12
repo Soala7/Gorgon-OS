@@ -1,12 +1,37 @@
-make --dry-run --keep-going --print-directory
+make --dry-run --always-make --keep-going --print-directory
 make: Entering directory '/home/s7k11/Documents/Gorgon-OS'
+mkdir -p build/x86_64/ && \
+x86_64-elf-gcc -c -ffreestanding -g -O0 src/kernel/main.c -o build/x86_64/main.o
+mkdir -p build/x86_64/ && \
+x86_64-elf-gcc -c -ffreestanding -g -O0 src/kernel/task.c -o build/x86_64/task.o
+mkdir -p build/x86_64/ && \
+x86_64-elf-gcc -c -ffreestanding -g -O0 src/kernel/serial.c -o build/x86_64/serial.o
+mkdir -p build/x86_64/cpu/ && \
+x86_64-elf-gcc -c -ffreestanding -g -O0 src/x86_64/cpu/timer.c -o build/x86_64/cpu/timer.o
+mkdir -p build/x86_64/boot/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/boot/main.asm -o build/x86_64/boot/main.o
+mkdir -p build/x86_64/boot/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/boot/header.asm -o build/x86_64/boot/header.o
+mkdir -p build/x86_64/boot/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/boot/main64.asm -o build/x86_64/boot/main64.o
+mkdir -p build/x86_64/cpu/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/pit.asm -o build/x86_64/cpu/pit.o
+ 
+mkdir -p build/x86_64/cpu/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/pic.asm -o build/x86_64/cpu/pic.o
+mkdir -p build/x86_64/cpu/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/gdt.asm -o build/x86_64/cpu/gdt.o
+mkdir -p build/x86_64/cpu/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/context_switch.asm -o build/x86_64/cpu/context_switch.o
+mkdir -p build/x86_64/cpu/ && \
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/idt.asm -o build/x86_64/cpu/idt.o
 mkdir -p dist/x86_64
 # Link all object files into the kernel
 x86_64-elf-ld -n \
 	-o dist/x86_64/kernel.bin \
 	-T targets/x86_64/linker.ld \
-	build/x86_64/main.o build/x86_64/serial.o \
-	 build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o
+	build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o \
+	build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
 # Copy kernel into the ISO
 cp dist/x86_64/kernel.bin targets/x86_64/iso/boot/kernel.bin
 # Create bootable ISO
