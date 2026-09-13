@@ -1,20 +1,27 @@
 global start
+
 extern long_mode_start
+global multiboot_info
 extern gdt_load
-extern divide_by_zero_handler
 
 section .text
 bits 32
 
 start:
-    mov esp, start_stack
+    mov esp, end_stack
+    mov ebp, esp
+
+    mov [multiboot_info], ebx
+
     call check_multiboot
     call check_cpuid
     call check_cpu_long
     call setup_page_table
     call enable_page_table
     call gdt_load
+
     jmp 0x08:long_mode_start
+
     hlt
 
 check_multiboot:
@@ -44,6 +51,7 @@ check_cpuid:
 
     cmp eax, ecx
     je .no_cpuid
+
     ret
 
 .no_cpuid:
@@ -83,6 +91,7 @@ setup_page_table:
 .loop:
     mov eax, 0x200000
     mul ecx
+
     or eax, 0b10000011
     mov [page_table_l2 + ecx * 8], eax
 
@@ -102,6 +111,7 @@ enable_page_table:
 
     mov ecx, 0xC0000080
     rdmsr
+
     or eax, 1 << 8
     wrmsr
 
@@ -116,9 +126,15 @@ error:
     mov dword [0xb8004], 0x4f324f52
     mov dword [0xb8008], 0x4f204f20
     mov byte [0xb800a], al
+
+    cli
+
+.hang:
     hlt
+    jmp .hang
 
 section .bss
+
 align 4096
 
 page_table_l4:
@@ -130,8 +146,12 @@ page_table_l3:
 page_table_l2:
     resb 4096
 
+multiboot_info:
+    resd 1
+
+align 16
+
 start_stack:
     resb 4096 * 4
 
 end_stack:
-

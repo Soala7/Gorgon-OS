@@ -1,11 +1,15 @@
 #include "serial.h"
 #include "task.h"
+#include "memory/pmm.h"
 #include "../x86_64/cpu/pic.h"
 #include "../x86_64/cpu/timer.h"
+
+extern uint32_t multiboot_info;
 
 void kernel_main()
 {
     serial_init();
+    pmm_init(multiboot_info);
     task_init();
     task_t *test_task = task_create();
     task_t *test_task_2 = task_create();
