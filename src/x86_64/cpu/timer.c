@@ -8,9 +8,10 @@ void timer_init(void){
     pit_init();
 }
 
-task_t* timer_tick(interrupt_context_t *context){
+task_t *timer_tick(interrupt_context_t *context){
+    (void)context;
     timer_ticks++;
-    return task_schedule(context);
+    return 0;
 }
 
 uint64_t timer_get_ticks(void){

@@ -1,15 +1,23 @@
-| #  | Step                                | Goal                                                                           | Main files                                  |
-| -- | ----------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- |
-| 1  | **Boot stack fix**                  | Make the boot stack grow into its reserved space correctly                     | `src/x86_64/boot/main.asm`                  |
-| 2  | **Linker sections**                 | Properly include `.text`, `.rodata`, `.data`, `.bss`, kernel stack/page tables | `targets/x86_64/linker.ld`                  |
-| 3  | **Compiler flags**                  | Make kernel C safe for interrupt-driven execution                              | `Makefile`                                  |
-| 4  | **Save Multiboot2 info**            | Preserve `EBX` so Gorgon can read the memory map                               | `src/x86_64/boot/main.asm`, boot C          |
-| 5  | **PIC cleanup**                     | Mask unused IRQs, especially keyboard IRQ1                                     | `src/x86_64/cpu/pic.c/.h`                   |
-| 6  | **Exception frames**                | Correctly handle exceptions with/without CPU error codes                       | `src/x86_64/cpu/idt.asm`                    |
-| 7  | **TSS / fault stack**               | Give serious CPU faults a safe stack                                           | `src/x86_64/cpu/gdt.*`, new TSS code        |
-| 8  | **Clean context structures**        | Remove duplicate structs and magic offsets                                     | `task.h`, `context.h`, `task.c`, `idt.asm`  |
-| 9  | **Stop scheduler work temporarily** | Leave task switching as an experiment until memory exists                      | `task.*`, `context_switch.asm`              |
-| 10 | **M3 — Physical Memory**            | Build the actual physical-frame allocator                                      | new memory files + boot memory-map handling |
-| 11 | **M4 — Virtual Memory**             | Page mapping, unmapping, page faults, address spaces                           | new VM files                                |
-| 12 | **Kernel heap**                     | `kmalloc`/`kfree` on top of physical + virtual memory                          | new heap files                              |
-| 13 | **Return to scheduler**             | Real task stacks/context switching using the memory system                     | `task.*`, `context_switch.asm`, `idt.asm`   |
+| File                                | What we will do                                                                                           |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `src/x86_64/cpu/pic.c`              | Fix PIC masks to `0xFE / 0xFF`; keep only IRQ0 enabled                                                    |
+| `src/x86_64/cpu/pic.asm`            | Fix `pic_send_eoi` to use the C ABI (`RDI`)                                                               |
+| `src/x86_64/cpu/pic.h`              | Verify EOI declaration matches implementation                                                             |
+| `src/x86_64/cpu/serial.c`           | Disable unnecessary UART interrupts; remove duplicate I/O helpers                                         |
+| `src/x86_64/cpu/io.h`               | Keep the single canonical `inb/outb` implementation                                                       |
+| `src/x86_64/cpu/idt.asm`            | Fix exception frames/error-code handling; fix exception printing; prepare proper interrupt-frame handling |
+| `src/x86_64/cpu/gdt.asm`            | Extend GDT for TSS support                                                                                |
+| `src/x86_64/cpu/gdt.h`              | Add TSS/GDT declarations if required                                                                      |
+| `src/x86_64/cpu/tss.asm` or `tss.c` | Add TSS and dedicated fault/interrupt stack                                                               |
+| `src/x86_64/cpu/tss.h`              | TSS interface                                                                                             |
+| `src/x86_64/cpu/task.h`             | Consolidate context structures and remove the duplicated layout                                           |
+| `src/x86_64/task.c`                 | Later: integrate tasks with real stacks/PMM; **scheduler stays disabled for now**                         |
+| `src/x86_64/cpu/context.h`          | Remove/replace duplicate `cpu_context_t`                                                                  |
+| `src/x86_64/cpu/context_switch.asm` | Later rewrite when real context switching begins                                                          |
+| `src/x86_64/cpu/timer.c`            | Keep timer ticking; don't perform task switching yet                                                      |
+| `src/x86_64/cpu/timer.h`            | Keep the correct `timer_tick()` interface                                                                 |
+| `src/memory/pmm.c`                  | Reserve kernel/bitmap/page tables/boot stack/Multiboot info; fix allocation semantics                     |
+| `src/memory/pmm.h`                  | Update PMM API                                                                                            |
+| `src/x86_64/boot/main.asm`          | Already fixed; only extend if PMM needs additional boot information                                       |
+| `targets/x86_64/linker.ld`          | Already fixed; expose/use `kernel_start/kernel_end` correctly                                             |
+| `Makefile`                          | Already improved; add any new TSS/PMM objects                                                             |

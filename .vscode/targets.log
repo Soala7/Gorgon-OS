@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Sep 13 19:21:08 2026
+# Make data base, printed on Sat Sep 19 01:52:54 2026
 
 # Variables
 
@@ -16,18 +16,14 @@ GDK_BACKEND = x11
 LC_ALL = C
 # environment
 MXC_BIN_DIR = /usr/share/code/resources/app/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin
-# makefile (from 'Makefile', line 14)
-x86_64_object_files := build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
+# makefile (from 'Makefile', line 39)
+DIST := dist/x86_64
 # environment
 GJS_DEBUG_OUTPUT = stderr
-# makefile (from 'Makefile', line 8)
-x86_64_c_source_files := src/x86_64/cpu/timer.c
 # environment
 VSCODE_CRASH_REPORTER_PROCESS_TYPE = extensionHost
 # environment
 VSCODE_CWD = /home/s7k11
-# makefile (from 'Makefile', line 11)
-kernel_source_files := src/kernel/pmm.c src/kernel/main.c src/kernel/task.c src/kernel/serial.c
 # environment
 NVM_DIR = /home/s7k11/.nvm
 # environment
@@ -46,6 +42,8 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 .VARIABLES := 
 # environment
 PWD = /home/s7k11/Documents/Gorgon-OS
+# makefile (from 'Makefile', line 12)
+GRUB := grub-mkrescue
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
@@ -55,7 +53,7 @@ XDG_DATA_DIRS = /usr/share/cinnamon:/usr/share/gnome:/home/s7k11/.local/share/fl
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = /home/s7k11/.config/Code/CachedData/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c
+VSCODE_CODE_CACHE_PATH = /home/s7k11/.config/Code/CachedData/7debcd0e2acdea1c52de81bf9ee1620444407dda
 # environment
 XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session0
 # environment
@@ -64,8 +62,6 @@ LANG = C
 XAUTHORITY = /home/s7k11/.Xauthority
 # default
 .LOADED := 
-# makefile (from 'Makefile', line 5)
-x86_64_asm_source_files := src/x86_64/boot/main.asm src/x86_64/boot/header.asm src/x86_64/boot/main64.asm src/x86_64/cpu/pit.asm src/x86_64/cpu/pic.asm src/x86_64/cpu/gdt.asm src/x86_64/cpu/context_switch.asm src/x86_64/cpu/idt.asm
 # default
 .INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
 # makefile
@@ -74,6 +70,8 @@ MAKEFLAGS = pqrR
 COPILOT_CLI_ENABLED_FEATURE_FLAGS = SHELL_SPAWN_BACKEND
 # makefile
 CURDIR := /home/s7k11/Documents/Gorgon-OS
+# makefile (from 'Makefile', line 32)
+NASMFLAGS := -f elf64 -g -F dwarf
 # environment
 APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
@@ -98,18 +96,18 @@ COPILOT_OTEL_FILE_EXPORTER_PATH = /dev/null
 XDG_SESSION_DESKTOP = cinnamon
 # makefile (from 'Makefile', line 1)
 MAKEFILE_LIST := Makefile
-# makefile (from 'Makefile', line 23)
-ASFLAGS := -f elf64 -g -F dwarf
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 3001
+VSCODE_PID = 3253
+# makefile (from 'Makefile', line 40)
+ISO := dist/x86_64/iso
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
-SESSION_MANAGER = local/s7k11-HP-ProBook-645-G3:@/tmp/.ICE-unix/1628,unix/s7k11-HP-ProBook-645-G3:/tmp/.ICE-unix/1628
+SESSION_MANAGER = local/s7k11-HP-ProBook-645-G3:@/tmp/.ICE-unix/1586,unix/s7k11-HP-ProBook-645-G3:/tmp/.ICE-unix/1586
 # automatic
 *F = $(notdir $*)
 # environment
@@ -126,6 +124,8 @@ MAKE_HOST := x86_64-pc-linux-gnu
 GNOME_DESKTOP_SESSION_ID = this-is-deprecated
 # makefile
 SHELL = /bin/sh
+# environment
+NoDefaultCurrentDirectoryInExePath = 1
 # default
 MAKECMDGOALS := all
 # environment
@@ -148,12 +148,14 @@ LANGUAGE = en_NG:en
 CINNAMON_VERSION = 6.4.14
 # environment
 APPLICATION_INSIGHTS_NO_STATSBEAT = true
-# makefile (from 'Makefile', line 9)
-x86_64_c_object_files := build/x86_64/cpu/timer.o
+# makefile (from 'Makefile', line 81)
+ASM_OBJECTS := build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
 # environment
 LESSCLOSE = /usr/bin/lesspipe %s %s
 # automatic
 ?F = $(notdir $?)
+# makefile (from 'Makefile', line 72)
+C_OBJECTS := build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o
 # environment
 XDG_SEAT = seat0
 # environment
@@ -163,18 +165,18 @@ XDG_CURRENT_DESKTOP = X-Cinnamon
 # environment
 XDG_SEAT_PATH = /org/freedesktop/DisplayManager/Seat0
 # environment
+ 
 DESKTOP_SESSION = cinnamon
+# makefile (from 'Makefile', line 90)
+OBJECTS := build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
 LOGNAME = s7k11
 # environment
 GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
- 
 # environment
 XDG_VTNR = 7
-# makefile (from 'Makefile', line 12)
-kernel_object_files := build/x86_64/pmm.o build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o
 # makefile
 .DEFAULT_GOAL := all
 # environment
@@ -183,22 +185,22 @@ DISPLAY = :0
 USER = s7k11
 # environment
 GTK_MODULES = gail:atk-bridge
-# makefile (from 'Makefile', line 6)
-x86_64_asm_object_files := build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
+# makefile (from 'Makefile', line 11)
+NASM := nasm
 # default
 MAKE_VERSION := 4.3
-# 'override' directive
-.SHELLSTATUS := 0
-# makefile (from 'Makefile', line 25)
-LDFLAGS := -n
+# makefile (from 'Makefile', line 38)
+BUILD := build/x86_64
+# makefile (from 'Makefile', line 30)
+LDFLAGS := -T targets/x86_64/linker.ld
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 3001
+GIO_LAUNCHED_DESKTOP_FILE_PID = 3253
 # environment
 _ = /usr/share/code/code
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
-# makefile (from 'Makefile', line 16)
-CFLAGS := -ffreestanding -g -O0 -Wall -mno-red-zone -fno-stack-protector -fno-pic -fno-pie -mno-sse
+# makefile (from 'Makefile', line 18)
+CFLAGS := -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mno-sse -Wall -I src -I src/kernel -I src/x86_64
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
@@ -217,20 +219,28 @@ XDG_SESSION_ID = c2
 .RECIPEPREFIX := 
 # automatic
 <F = $(notdir $<)
+# makefile (from 'Makefile', line 46)
+C_SOURCES := src/kernel/main.c src/kernel/serial.c src/kernel/task.c src/x86_64/cpu/pic.c src/x86_64/cpu/timer.c src/x86_64/cpu/tss.c src/x86_64/memory/pmm.c
 # default
 SUFFIXES := 
+# makefile (from 'Makefile', line 10)
+LD := x86_64-elf-ld
+# makefile (from 'Makefile', line 59)
+ASM_SOURCES := src/x86_64/boot/header.asm src/x86_64/boot/main.asm src/x86_64/boot/main64.asm src/x86_64/cpu/gdt.asm src/x86_64/cpu/idt.asm src/x86_64/cpu/pit.asm src/x86_64/cpu/context_switch.asm
 # environment
 XDG_GREETER_DATA_DIR = /var/lib/lightdm-data/s7k11
 # environment
 DEBUG = release
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
+# makefile (from 'Makefile', line 9)
+CC := x86_64-elf-gcc
 # environment
 VSCODE_ESM_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
 GDMSESSION = cinnamon
 # variable set hash-table stats:
-# Load=109/1024=11%, Rehash=0, Collisions=6/164=4%
+# Load=114/1024=11%, Rehash=0, Collisions=8/188=4%
 
 # Pattern-specific Variable Values
 
@@ -250,137 +260,166 @@ GDMSESSION = cinnamon
 
 # Not a target:
 src/x86_64/cpu/gdt.asm:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-src/kernel/main.c:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-src/x86_64/cpu/context_switch.asm:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-src/x86_64/cpu/pit.asm:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-build/x86_64/pmm.o: src/kernel/pmm.c
-#  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'pmm'
-#  File does not exist.
-#  File has been updated.
-#  Needs to be updated (-q is set).
-# automatic
-# @ := build/x86_64/pmm.o
-# automatic
-# * := pmm
-# automatic
-# < := src/kernel/pmm.c
-# automatic
-# + := src/kernel/pmm.c
-# automatic
-# % := 
-# automatic
-# ^ := src/kernel/pmm.c
-# automatic
-# ? := src/kernel/pmm.c
-# automatic
-# | := 
-# variable set hash-table stats:
-# Load=8/32=25%, Rehash=0, Collisions=1/15=7%
-#  recipe to execute (from 'Makefile', line 36):
-	mkdir -p $(dir $@)
-	x86_64-elf-gcc -c $(CFLAGS) $< -o $@
-
-# Not a target:
-src/x86_64/boot/main.asm:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-build/x86_64/boot/header.o: src/x86_64/boot/header.asm
-#  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'boot/header'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
-	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
-
-build/x86_64/cpu/pit.o: src/x86_64/cpu/pit.asm
-#  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'cpu/pit'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
-	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
-
-# Not a target:
-Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2026-09-13 19:13:12.361295571
+#  Last modified 2026-09-12 01:26:04.459516727
 #  File has been updated.
 #  Successfully updated.
 
 # Not a target:
-src/x86_64/boot/header.asm:
+src/kernel/main.c:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-19 01:48:58.732161015
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+src/x86_64/cpu/context_switch.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 09:48:07.292975818
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+src/x86_64/cpu/pit.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-11 02:14:53.714658024
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+src/x86_64/boot/main.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-14 00:23:30.985657549
+#  File has been updated.
+#  Successfully updated.
+
+build/x86_64/boot/header.o: src/x86_64/boot/header.asm
 #  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Last modified 2026-09-19 01:45:09.470249179
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 144):
+	mkdir -p $(dir $@)
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+build/x86_64/memory/pmm.o: src/x86_64/memory/pmm.c
+#  Implicit rule search has not been done.
+#  Last modified 2026-09-19 01:45:09.431248542
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 136):
+	mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+build/x86_64/cpu/pit.o: src/x86_64/cpu/pit.asm
+#  Implicit rule search has not been done.
+#  Last modified 2026-09-19 01:45:09.565250729
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 164):
+	mkdir -p $(dir $@)
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+# Not a target:
+src/x86_64/cpu/pic.c:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-18 10:53:40.214093403
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-19 01:52:13.924001691
+#  File has been updated.
+#  Successfully updated.
+
+build/x86_64/cpu/tss.o: src/x86_64/cpu/tss.c
+#  Implicit rule search has not been done.
+#  Last modified 2026-09-19 01:52:19.394543194
+ 
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 128):
+	mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+# Not a target:
+src/x86_64/boot/header.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-08-30 13:58:08.805509008
+#  File has been updated.
+#  Successfully updated.
 
 clean:
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
- 
-#  recipe to execute (from 'Makefile', line 56):
-	rm -rf build/x86_64 dist/x86_64
+#  recipe to execute (from 'Makefile', line 209):
+	rm -rf build
+	rm -rf dist/x86_64/kernel.bin
+	rm -rf dist/x86_64/gorgon.iso
+	rm -rf dist/x86_64/iso
 
-build-x86_64: build/x86_64/pmm.o build/x86_64/main.o build/x86_64/task.o build/x86_64/serial.o build/x86_64/cpu/timer.o build/x86_64/boot/main.o build/x86_64/boot/header.o build/x86_64/boot/main64.o build/x86_64/cpu/pit.o build/x86_64/cpu/pic.o build/x86_64/cpu/gdt.o build/x86_64/cpu/context_switch.o build/x86_64/cpu/idt.o
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
+# Not a target:
+src/x86_64/memory/pmm.c:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-19 01:35:45.288826494
 #  File has been updated.
-#  Needs to be updated (-q is set).
-# variable set hash-table stats:
-# Load=0/32=0%, Rehash=0, Collisions=0/4=0%
-#  recipe to execute (from 'Makefile', line 40):
-	mkdir -p dist/x86_64
-	x86_64-elf-ld $(LDFLAGS) \
-		-o dist/x86_64/kernel.bin \
-		-T targets/x86_64/linker.ld \
-		$(kernel_object_files) \
-		$(x86_64_object_files)
-	mkdir -p targets/x86_64/iso/boot
-	cp dist/x86_64/kernel.bin targets/x86_64/iso/boot/kernel.bin
-	grub-mkrescue \
-		-o dist/x86_64/gorgon.iso \
-		targets/x86_64/iso
+#  Successfully updated.
+
+# Not a target:
+src/x86_64/cpu/tss.c:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-19 01:39:55.486583358
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 src/x86_64/boot/main64.asm:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-15 20:47:13.169991579
+#  File has been updated.
+#  Successfully updated.
+
+dist/x86_64/kernel.bin: build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
 #  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit/static pattern stem: ''
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := dist/x86_64/kernel.bin
+# automatic
+# * := 
+# automatic
+# < := build/x86_64/main.o
+# automatic
+# + := build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
+# automatic
+# % := 
+# automatic
+# ^ := build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
+ 
+# automatic
+# ? := build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
+# automatic
+# | := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=1/16=6%
+#  recipe to execute (from 'Makefile', line 176):
+	mkdir -p $(DIST)
+	$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
 
 build/x86_64/cpu/timer.o: src/x86_64/cpu/timer.c
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'cpu/timer'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 32):
+#  Last modified 2026-09-19 01:45:09.328246861
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 124):
 	mkdir -p $(dir $@)
-	x86_64-elf-gcc -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 # Not a target:
 .DEFAULT:
@@ -388,14 +427,7 @@ build/x86_64/cpu/timer.o: src/x86_64/cpu/timer.c
 #  Modification time never checked.
 #  File has not been updated.
 
-# Not a target:
-src/kernel/pmm.c:
-#  Implicit rule search has been done.
-#  Last modified 2026-09-13 19:20:37.878787766
-#  File has been updated.
-#  Successfully updated.
-
-all: build-x86_64
+all: dist/x86_64/gorgon.iso
 #  Phony target (prerequisite of .PHONY).
 #  Command line target.
 #  Implicit rule search has not been done.
@@ -403,152 +435,187 @@ all: build-x86_64
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # variable set hash-table stats:
-# Load=0/32=0%, Rehash=0, Collisions=0/4=0%
+# Load=0/32=0%, Rehash=0, Collisions=0/7=0%
 
-run: build-x86_64
+run: dist/x86_64/gorgon.iso
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 59):
+#  recipe to execute (from 'Makefile', line 196):
 	qemu-system-x86_64 \
-		-cdrom dist/x86_64/gorgon.iso \
+		-cdrom $(DIST)/gorgon.iso \
 		-serial stdio \
 		-no-reboot \
 		-no-shutdown \
-		-d int,cpu_reset
+		-d int
+
+help:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 220):
+	@echo "Gorgon OS build targets:"
+	@echo "  make        Build kernel and ISO"
+	@echo "  make run    Build and run Gorgon in QEMU"
+	@echo "  make clean  Remove build artifacts"
 
 build/x86_64/serial.o: src/kernel/serial.c
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'serial'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 36):
+#  Last modified 2026-09-19 01:45:09.084242879
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 108):
 	mkdir -p $(dir $@)
-	x86_64-elf-gcc -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 # Not a target:
 src/x86_64/cpu/idt.asm:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2026-09-19 01:36:50.905437628
+#  File has been updated.
+#  Successfully updated.
 
 build/x86_64/boot/main64.o: src/x86_64/boot/main64.asm
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'boot/main64'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
+#  Last modified 2026-09-19 01:45:09.499249652
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 152):
 	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
+	$(NASM) $(NASMFLAGS) $< -o $@
 
-build/x86_64/cpu/pic.o: src/x86_64/cpu/pic.asm
+build/x86_64/cpu/pic.o: src/x86_64/cpu/pic.c
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'cpu/pic'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
+#  Last modified 2026-09-19 01:45:09.257199157
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 120):
 	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 build/x86_64/cpu/context_switch.o: src/x86_64/cpu/context_switch.asm
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'cpu/context_switch'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
+#  Last modified 2026-09-19 01:45:09.576250908
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 168):
 	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
+	$(NASM) $(NASMFLAGS) $< -o $@
 
 # Not a target:
 src/x86_64/cpu/timer.c:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2026-09-15 20:45:04.952910175
+#  File has been updated.
+#  Successfully updated.
 
 build/x86_64/task.o: src/kernel/task.c
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'task'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 36):
+#  Last modified 2026-09-19 01:45:09.18183599
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 112):
 	mkdir -p $(dir $@)
-	x86_64-elf-gcc -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 build/x86_64/cpu/gdt.o: src/x86_64/cpu/gdt.asm
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'cpu/gdt'
+#  Last modified 2026-09-19 01:45:09.511249848
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 156):
+	mkdir -p $(dir $@)
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+dist/x86_64/gorgon.iso: dist/x86_64/kernel.bin targets/x86_64/iso/boot/grub/grub.cfg
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/7=0%
+#  recipe to execute (from 'Makefile', line 184):
+	rm -rf $(ISO)
+	mkdir -p $(ISO)/boot/grub
+	cp $(DIST)/kernel.bin $(ISO)/boot/kernel.bin
+	cp targets/x86_64/iso/boot/grub/grub.cfg $(ISO)/boot/grub/grub.cfg
+	$(GRUB) -o $@ $(ISO)
+
+# Not a target:
+targets/x86_64/iso/boot/grub/grub.cfg:
+#  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
-	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
 
 build/x86_64/boot/main.o: src/x86_64/boot/main.asm
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'boot/main'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
+#  Last modified 2026-09-19 01:45:09.487249456
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 148):
 	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
+	$(NASM) $(NASMFLAGS) $< -o $@
 
 # Not a target:
 src/kernel/task.c:
+#  Implicit rule search has been done.
+#  Last modified 2026-09-12 16:54:30.499334158
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+.SUFFIXES:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 
-.PHONY: all build-x86_64 clean run
+.PHONY: all run clean help
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 
 build/x86_64/main.o: src/kernel/main.c
+ 
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'main'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 36):
+#  Last modified 2026-09-19 01:49:06.269294581
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 104):
 	mkdir -p $(dir $@)
-	x86_64-elf-gcc -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 build/x86_64/cpu/idt.o: src/x86_64/cpu/idt.asm
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: 'cpu/idt'
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
+#  Last modified 2026-09-19 01:45:09.557250598
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 160):
 	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) $< -o $@
-
-# Not a target:
- 
-src/x86_64/cpu/pic.asm:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+	$(NASM) $(NASMFLAGS) $< -o $@
 
 # Not a target:
 src/kernel/serial.c:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2026-09-10 12:55:30.778286382
+#  File has been updated.
+#  Successfully updated.
 
 # files hash-table stats:
-# Load=34/1024=3%, Rehash=0, Collisions=2/80=2%
+# Load=39/1024=4%, Rehash=0, Collisions=2/94=2%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 65 / storage = 964 B / avg = 14 B
-# current buf: size = 8162 B / used = 964 B / count = 65 / avg = 14 B
+# strcache buffers: 1 (0) / strings = 53 / storage = 916 B / avg = 17 B
+# current buf: size = 8162 B / used = 916 B / count = 53 / avg = 17 B
 
-# strcache performance: lookups = 109 / hit rate = 40%
+# strcache performance: lookups = 107 / hit rate = 50%
 # hash-table stats:
-# Load=65/8192=1%, Rehash=0, Collisions=0/109=0%
-# Finished Make data base on Sun Sep 13 19:21:08 2026
+# Load=53/8192=1%, Rehash=0, Collisions=0/107=0%
+# Finished Make data base on Sat Sep 19 01:52:54 2026
 
  

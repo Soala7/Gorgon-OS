@@ -1,5 +1,5 @@
 #include "pmm.h"
-#include "../serial.h"
+#include "../../kernel/serial.h"
 
 #define MULTIBOOT2_TAG_TYPE_END 0
 #define MULTIBOOT2_TAG_TYPE_MMAP 6
@@ -23,6 +23,12 @@ typedef struct{
     uint32_t type;
     uint32_t reserved;
 } multiboot_mmap_entry_t;
+
+// FIX: linker-provided symbols marking the physical range the
+// kernel image itself occupies. These are just addresses - the
+// & is required to get the symbol's address, not its "value".
+extern char kernel_start[];
+extern char kernel_end[];
 
 static uint8_t *frame_bitmap;
 static uint64_t total_pages;
@@ -49,6 +55,25 @@ static uint64_t align_down(uint64_t address){
 
 static uint64_t align_up(uint64_t address){
     return (address + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+}
+
+// FIX: mark every page in [start, end) as used, decrementing
+// free_pages for any page that was previously marked free.
+// Used to reserve the kernel image and the Multiboot info block
+// after the memory-map pass has already marked them free.
+static void reserve_range(uint64_t start, uint64_t end){
+    uint64_t first_page = align_down(start) / PAGE_SIZE;
+    uint64_t last_page = align_up(end) / PAGE_SIZE;
+
+    for (uint64_t page = first_page; page < last_page; page++){
+        if (page >= total_pages)
+            break;
+
+        if (!bitmap_test(page)){
+            bitmap_set(page);
+            free_pages--;
+        }
+    }
 }
 
 void pmm_init(uint32_t multiboot_info_address){
@@ -84,6 +109,10 @@ void pmm_init(uint32_t multiboot_info_address){
 
     total_pages = align_up(highest_address) / PAGE_SIZE;
 
+    // TODO: this bitmap is a fixed 1 MiB, capping addressable
+    // physical memory at 32 GB with no bounds check. Fine for
+    // QEMU-scale development; revisit if total_pages can exceed
+    // this before allocating the bitmap dynamically.
     static uint8_t bitmap[1024 * 1024];
 
     frame_bitmap = bitmap;
@@ -129,6 +158,14 @@ void pmm_init(uint32_t multiboot_info_address){
         tag_address += (size + 7) & ~7;
     }
 
+    // FIX: the memory map above only reports which physical RAM
+    // is present, not which of it is currently occupied. Without
+    // this, pmm_alloc_page() would happily hand out pages the
+    // running kernel and the Multiboot info block themselves
+    // live in.
+    reserve_range((uint64_t)kernel_start, (uint64_t)kernel_end);
+    reserve_range(multiboot_info_address, multiboot_info_address + info->total_size);
+
     serial_write_str("PMM initialized.\n");
     serial_write_str("Total pages: ");
     serial_write_hex(total_pages);
@@ -139,15 +176,24 @@ void pmm_init(uint32_t multiboot_info_address){
 }
 
 uint64_t pmm_alloc_page(void){
-    for (uint64_t page = 0; page < total_pages; page++){
-        if (!bitmap_test(page)){
+    serial_write_str("PMM alloc: searching...\n");
+
+    for (uint64_t page = 1; page < total_pages; page++) {
+        if (!bitmap_test(page)) {
+            serial_write_str("PMM alloc: found page ");
+            serial_write_hex(page);
+            serial_write_str("\n");
+
             bitmap_set(page);
-            free_pages--;
+
+            if (free_pages > 0)
+                free_pages--;
 
             return page * PAGE_SIZE;
         }
     }
 
+    serial_write_str("PMM alloc: no free page found.\n");
     return 0;
 }
 

@@ -4,6 +4,8 @@ SECTIONS
 {
     . = 1M;
 
+    kernel_start = .;
+
     .boot ALIGN(4K) :
     {
         KEEP(*(.multiboot_header))
