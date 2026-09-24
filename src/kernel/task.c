@@ -57,8 +57,8 @@ task_t *task_create(void)
     task->context.r12 = 0;
     task->context.r11 = 0;
     task->context.r10 = 0;
-    task->context.r9  = 0;
-    task->context.r8  = 0;
+    task->context.r9 = 0;
+    task->context.r8 = 0;
     task->context.rbp = 0;
     task->context.rdi = 0;
     task->context.rsi = 0;
@@ -75,9 +75,7 @@ task_t *task_create(void)
     task->context.cs = 0x08;
     task->context.rflags = 0x202;
 
-    uint64_t stack_top =
-        (uint64_t)&task->stack[TASK_STACK_SIZE];
-
+    uint64_t stack_top = (uint64_t)&task->stack[TASK_STACK_SIZE];
     stack_top &= ~0xFULL;
 
     task->context.rsp = stack_top;
@@ -111,8 +109,8 @@ task_t *task_schedule(interrupt_context_t *context)
     current->context.r12 = context->r12;
     current->context.r11 = context->r11;
     current->context.r10 = context->r10;
-    current->context.r9  = context->r9;
-    current->context.r8  = context->r8;
+    current->context.r9 = context->r9;
+    current->context.r8 = context->r8;
     current->context.rbp = context->rbp;
     current->context.rdi = context->rdi;
     current->context.rsi = context->rsi;

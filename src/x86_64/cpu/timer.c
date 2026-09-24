@@ -4,16 +4,19 @@
 
 volatile uint64_t timer_ticks = 0;
 
-void timer_init(void){
+void timer_init(void)
+{
     pit_init();
 }
 
-task_t *timer_tick(interrupt_context_t *context){
+task_t *timer_tick(interrupt_context_t *context)
+{
     (void)context;
     timer_ticks++;
     return 0;
 }
 
-uint64_t timer_get_ticks(void){
+uint64_t timer_get_ticks(void)
+{
     return timer_ticks;
 }
