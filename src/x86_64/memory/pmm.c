@@ -220,18 +220,9 @@ void pmm_init(uint32_t multiboot_info_address)
     serial_write_str("\n");
 }
 
-uint64_t pmm_alloc_page(void)
-{
-    serial_write_str("PMM alloc: searching...\n");
-
-    for (uint64_t page = 1; page < total_pages; page++)
-    {
-        if (!bitmap_test(page))
-        {
-            serial_write_str("PMM alloc: found page ");
-            serial_write_hex(page);
-            serial_write_str("\n");
-
+uint64_t pmm_alloc_page(void){
+    for (uint64_t page = 1; page < total_pages; page++){
+        if (!bitmap_test(page)){
             bitmap_set(page);
 
             if (free_pages > 0)
@@ -241,7 +232,6 @@ uint64_t pmm_alloc_page(void)
         }
     }
 
-    serial_write_str("PMM alloc: no free page found.\n");
     return 0;
 }
 
