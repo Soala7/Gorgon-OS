@@ -50,7 +50,8 @@ C_SOURCES := \
 	src/x86_64/cpu/pic.c \
 	src/x86_64/cpu/timer.c \
 	src/x86_64/cpu/tss.c \
-	src/x86_64/memory/pmm.c
+	src/x86_64/memory/pmm.c \
+	src/x86_64/memory/vmm.c
 
 # ------------------------------------------------------------
 # Assembly Sources
@@ -76,7 +77,8 @@ C_OBJECTS := \
 	$(BUILD)/cpu/pic.o \
 	$(BUILD)/cpu/timer.o \
 	$(BUILD)/cpu/tss.o \
-	$(BUILD)/memory/pmm.o
+	$(BUILD)/memory/pmm.o\
+	$(BUILD)/memory/vmm.o
 
 ASM_OBJECTS := \
 	$(BUILD)/boot/header.o \
@@ -133,6 +135,10 @@ $(BUILD)/cpu/tss.o: src/x86_64/cpu/tss.c
 # ------------------------------------------------------------
 
 $(BUILD)/memory/pmm.o: src/x86_64/memory/pmm.c
+	mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+$(BUILD)/memory/vmm.o: src/x86_64/memory/vmm.c
 	mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $< -o $@
 
