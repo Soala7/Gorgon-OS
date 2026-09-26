@@ -278,33 +278,75 @@ exception_handler:
 
     ; All exception stubs normalize the stack so:
     ;
-    ; [rsp + 120] = exception vector
-    ; [rsp + 128] = error code
-    ;
-    ; This is true for both exceptions that provide an
-    ; error code and exceptions that do not.
+    ; [rsp + 128] = exception vector
+    ; [rsp + 138] = error code
+
+    ; --------------------------------------------------------
+    ; Check for Page Fault (#PF = vector 14)
+    ; --------------------------------------------------------
+
+    cmp qword [rsp + 120], 14
+    je page_fault_handler
+
+    ; --------------------------------------------------------
+    ; Generic exception reporting
+    ; --------------------------------------------------------
 
     lea rdi, [rel exception_vector_message]
-    call serial_write_str
-
-    mov rdi, [rsp + 120]
-    call serial_write_hex
-
-    lea rdi, [rel exception_error_message]
     call serial_write_str
 
     mov rdi, [rsp + 128]
     call serial_write_hex
 
-    lea rdi, [rel newline_message]
+    lea rdi, [rel exception_error_message]
     call serial_write_str
 
+    mov rdi, [rsp + 138]
+    call serial_write_hex
+
+    lea rdi, [rel newline_message]
+    call serial_write_str
 
 .exception_hang:
     hlt
     jmp .exception_hang
 
 
+; ------------------------------------------------------------
+; Page Fault Handler
+; ------------------------------------------------------------
+
+page_fault_handler:
+
+    ; Read CR2 immediately.
+    mov rax, cr2
+
+    ; Preserve CR2 while serial functions execute.
+    push rax
+
+    lea rdi, [rel page_fault_message]
+    call serial_write_str
+
+    lea rdi, [rel page_fault_address_message]
+    call serial_write_str
+
+    mov rdi, [rsp]
+    call serial_write_hex
+
+    lea rdi, [rel page_fault_error_message]
+    call serial_write_str
+
+    mov rdi, [rsp + 136]
+    call serial_write_hex
+
+    lea rdi, [rel newline_message]
+    call serial_write_str
+
+    add rsp, 8
+
+.page_fault_hang:
+    hlt
+    jmp .page_fault_hang
 ; ------------------------------------------------------------
 ; Exception stubs
 ; ------------------------------------------------------------
@@ -500,6 +542,15 @@ exception_error_message:
 
 interrupt_vector_message:
     db "Unhandled interrupt vector: 0x", 0
+
+page_fault_message:
+    db "Page Fault: PASS", 10, 0
+
+page_fault_address_message:
+    db "Fault address: 0x", 0
+
+page_fault_error_message:
+    db " Error code: 0x", 0
 
 newline_message:
     db 10, 0

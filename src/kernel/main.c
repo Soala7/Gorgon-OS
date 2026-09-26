@@ -11,8 +11,13 @@ extern uintptr_t multiboot_info;
 extern uint64_t page_table_l4[];
 
 // Inline TLB flush helper for single page
-static inline void flush_tlb_page(uint64_t maddr) {
-    __asm__ volatile("invlpg (%0)" :: "r"(maddr) : "memory");
+static inline void flush_tlb_page(uint64_t address){
+    __asm__ volatile(
+        "invlpg (%0)"
+        :
+        : "r"(address)
+        : "memory"
+    );
 }
 
 void kernel_main(void) {
@@ -111,7 +116,17 @@ void kernel_main(void) {
 
         pmm_free_page(physical_address);
     }
-    
+    serial_write_str("Testing page fault...\n");
+
+    volatile uint64_t *fault_address =(volatile uint64_t *)0x40000000ULL;
+
+    (void)*fault_address;
+
+    /*
+    * Execution should never reach here because the
+    * page-fault handler currently halts the CPU.
+    */
+    serial_write_str("Page Fault test FAILED: execution continued.\n");
     timer_init();
     serial_write_str("PIC and PIT initialized.\n");
     serial_write_str("Interrupts enabled.\n");
