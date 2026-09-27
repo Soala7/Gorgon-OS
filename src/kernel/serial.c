@@ -74,3 +74,20 @@ void serial_write_hex(uint64_t n)
     serial_write_str(hex);
     // Hexadecimal output will go here.
 }
+
+void serial_write_dec(uint64_t n)
+{
+    char digits[20];
+    size_t length = 0;
+
+    do
+    {
+        digits[length++] = '0' + (n % 10);
+        n /= 10;
+    } while (n != 0);
+
+    while (length > 0)
+    {
+        serial_write(digits[--length]);
+    }
+}

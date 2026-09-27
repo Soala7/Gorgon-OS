@@ -25,4 +25,10 @@ uint64_t vmm_get_pte(
     uint64_t virtual_address
 );
 
+void vmm_init(uint64_t *pml4);
+
+void vmm_switch_address_space(uint64_t *pml4);
+
+uint64_t *vmm_get_current_pml4(void);
+
 #endif

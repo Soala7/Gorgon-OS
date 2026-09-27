@@ -1,5 +1,14 @@
 make --dry-run --keep-going --print-directory
 make: Entering directory '/home/s7k11/Documents/Gorgon-OS'
-make: Nothing to be done for 'all'.
+mkdir -p build/x86_64/memory/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/memory/heap.c -o build/x86_64/memory/heap.o
+ 
+mkdir -p dist/x86_64
+x86_64-elf-ld -T targets/x86_64/linker.ld -o dist/x86_64/kernel.bin build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o build/x86_64/memory/vmm.o build/x86_64/memory/heap.o build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
+rm -rf dist/x86_64/iso
+mkdir -p dist/x86_64/iso/boot/grub
+cp dist/x86_64/kernel.bin dist/x86_64/iso/boot/kernel.bin
+cp targets/x86_64/iso/boot/grub/grub.cfg dist/x86_64/iso/boot/grub/grub.cfg
+grub-mkrescue -o dist/x86_64/gorgon.iso dist/x86_64/iso
 make: Leaving directory '/home/s7k11/Documents/Gorgon-OS'
  

@@ -12,8 +12,8 @@ Gorgon VOS is being built as a native x86-64 hybrid kernel with a native userspa
   - M1: Build, boot, and debug foundation
   - M2: CPU architecture and basic interrupts
   - M3: Physical memory
-  - M4: Virtual memory
-  - M5: Kernel heap
+  - M4: Virtual memory  here
+  - M5: Kernel heap  here
   - M6: Processes
   - M7: Threads
   - M8: Scheduler
