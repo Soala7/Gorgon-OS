@@ -2,8 +2,9 @@ global long_mode_start
 
 extern kernel_main
 extern idt_load
+extern multiboot_info
 
-section .text
+section .boot.text
 bits 64
 
 long_mode_start:
@@ -16,10 +17,13 @@ long_mode_start:
     mov ss, ax
 
     ; Install the IDT
-    call idt_load
+    mov rax, idt_load
+    call rax
 
     ; Enter the C kernel
-    call kernel_main
+    mov edi, [rel multiboot_info]
+    mov rax, kernel_main
+    call rax
 
 .hang:
     cli

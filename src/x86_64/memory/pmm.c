@@ -6,6 +6,8 @@
 #define MULTIBOOT2_MEMORY_AVAILABLE 1
 #define BITMAP_SIZE (1024 * 1024)
 #define BITMAP_MAX_PAGES (BITMAP_SIZE * 8ULL)
+#define IDENTITY_MAP_LIMIT 0x40000000ULL
+#define IDENTITY_MAP_MAX_PAGES (IDENTITY_MAP_LIMIT / PAGE_SIZE)
 
 typedef struct
 {
@@ -32,8 +34,15 @@ typedef struct
 // FIX: linker-provided symbols marking the physical range the
 // kernel image itself occupies. These are just addresses - the
 // & is required to get the symbol's address, not its "value".
+//
+// kernel_start/kernel_end are now HIGH-HALF VIRTUAL addresses
+// (0xFFFFFFFF80...) since the higher-half transition. Use the
+// *_phys twins the linker script exposes for anything that needs
+// a real physical address - reserve_range() below included.
 extern char kernel_start[];
 extern char kernel_end[];
+extern char kernel_start_phys[];
+extern char kernel_end_phys[];
 
 static uint8_t *frame_bitmap;
 static uint64_t total_pages;
@@ -134,6 +143,12 @@ void pmm_init(uint32_t multiboot_info_address)
      this before allocating the bitmap dynamically.*/
     total_pages = align_up(highest_address) / PAGE_SIZE;
 
+
+    if (total_pages > IDENTITY_MAP_MAX_PAGES) {
+        serial_write_str("PMM: limiting to 1 GiB identity map.\n");
+        total_pages = IDENTITY_MAP_MAX_PAGES;
+    }
+
     if (total_pages > BITMAP_MAX_PAGES)
         total_pages = BITMAP_MAX_PAGES;
 
@@ -185,29 +200,43 @@ void pmm_init(uint32_t multiboot_info_address)
     serial_write_hex(free_pages);
     serial_write_str("\n");
 
-    serial_write_str("kernel_start: ");
+    serial_write_str("kernel_start (virt): ");
     serial_write_hex((uint64_t)kernel_start);
     serial_write_str("\n");
 
-    serial_write_str("kernel_end: ");
+    serial_write_str("kernel_start_phys: ");
+    serial_write_hex((uint64_t)kernel_start_phys);
+    serial_write_str("\n");
+
+    serial_write_str("kernel_end (virt): ");
     serial_write_hex((uint64_t)kernel_end);
+    serial_write_str("\n");
+
+    serial_write_str("kernel_end_phys: ");
+    serial_write_hex((uint64_t)kernel_end_phys);
     serial_write_str("\n");
 
     serial_write_str("multiboot_info: ");
     serial_write_hex((uint64_t)multiboot_info_address);
     serial_write_str("\n");
+
     // FIX: the memory map above only reports which physical RAM
     // is present, not which of it is currently occupied. Without
     // this, pmm_alloc_page() would happily hand out pages the
     // running kernel and the Multiboot info block themselves
     // live in.
-    reserve_range(0, (uint64_t)kernel_start);
+    //
+    // Reserve against the *_phys symbols, not the raw (now
+    // high-half virtual) kernel_start/kernel_end - reserve_range()
+    // works in physical page numbers, so feeding it a virtual
+    // address here previously wiped out the entire bitmap.
+    reserve_range(0, (uint64_t)kernel_start_phys);
 
     serial_write_str("Free after low reservation: ");
     serial_write_hex(free_pages);
     serial_write_str("\n");
 
-    reserve_range((uint64_t)kernel_start, (uint64_t)kernel_end);
+    reserve_range((uint64_t)kernel_start_phys, (uint64_t)kernel_end_phys);
 
     serial_write_str("Free after kernel reservation: ");
     serial_write_hex(free_pages);

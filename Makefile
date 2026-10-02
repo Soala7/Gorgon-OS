@@ -21,6 +21,7 @@ CFLAGS  := -ffreestanding \
            -mno-red-zone \
            -fno-stack-protector \
            -fno-pic \
+		   -mcmodel=kernel \
            -mno-sse \
            -Wall \
            -I src \

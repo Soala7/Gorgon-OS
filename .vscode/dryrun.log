@@ -1,8 +1,37 @@
-make --dry-run --keep-going --print-directory
+make --dry-run --always-make --keep-going --print-directory
 make: Entering directory '/home/s7k11/Documents/Gorgon-OS'
+mkdir -p build/x86_64/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/kernel/main.c -o build/x86_64/main.o
+mkdir -p build/x86_64/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/kernel/serial.c -o build/x86_64/serial.o
+mkdir -p build/x86_64/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/kernel/task.c -o build/x86_64/task.o
+mkdir -p build/x86_64/cpu/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/cpu/pic.c -o build/x86_64/cpu/pic.o
+mkdir -p build/x86_64/cpu/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/cpu/timer.c -o build/x86_64/cpu/timer.o
+mkdir -p build/x86_64/cpu/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/cpu/tss.c -o build/x86_64/cpu/tss.o
 mkdir -p build/x86_64/memory/
-x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/memory/heap.c -o build/x86_64/memory/heap.o
- 
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/memory/pmm.c -o build/x86_64/memory/pmm.o
+mkdir -p build/x86_64/memory/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/memory/vmm.c -o build/x86_64/memory/vmm.o
+mkdir -p build/x86_64/memory/
+x86_64-elf-gcc -c -ffreestanding -g -O0 -mno-red-zone -fno-stack-protector -fno-pic -mcmodel=kernel -mno-sse -Wall -I src -I src/kernel -I src/x86_64 src/x86_64/memory/heap.c -o build/x86_64/memory/heap.o
+mkdir -p build/x86_64/boot/
+nasm -f elf64 -g -F dwarf src/x86_64/boot/header.asm -o build/x86_64/boot/header.o
+mkdir -p build/x86_64/boot/
+nasm -f elf64 -g -F dwarf src/x86_64/boot/main.asm -o build/x86_64/boot/main.o
+mkdir -p build/x86_64/boot/
+nasm -f elf64 -g -F dwarf src/x86_64/boot/main64.asm -o build/x86_64/boot/main64.o
+mkdir -p build/x86_64/cpu/
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/gdt.asm -o build/x86_64/cpu/gdt.o
+mkdir -p build/x86_64/cpu/
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/idt.asm -o build/x86_64/cpu/idt.o
+mkdir -p build/x86_64/cpu/
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/pit.asm -o build/x86_64/cpu/pit.o
+mkdir -p build/x86_64/cpu/
+nasm -f elf64 -g -F dwarf src/x86_64/cpu/context_switch.asm -o build/x86_64/cpu/context_switch.o
 mkdir -p dist/x86_64
 x86_64-elf-ld -T targets/x86_64/linker.ld -o dist/x86_64/kernel.bin build/x86_64/main.o build/x86_64/serial.o build/x86_64/task.o build/x86_64/cpu/pic.o build/x86_64/cpu/timer.o build/x86_64/cpu/tss.o build/x86_64/memory/pmm.o build/x86_64/memory/vmm.o build/x86_64/memory/heap.o build/x86_64/boot/header.o build/x86_64/boot/main.o build/x86_64/boot/main64.o build/x86_64/cpu/gdt.o build/x86_64/cpu/idt.o build/x86_64/cpu/pit.o build/x86_64/cpu/context_switch.o
 rm -rf dist/x86_64/iso

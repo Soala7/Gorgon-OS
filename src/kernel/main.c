@@ -11,41 +11,27 @@
 #include "../x86_64/cpu/tss.h"
 
 /*
- * Multiboot information address stored by the 32-bit boot code.
- *
- * main.asm:
- *
- *     multiboot_info:
- *         resd 1
- */
-extern uint32_t multiboot_info;
-
-/*
  * Bootstrap PML4 created by main.asm.
  *
  * It currently identity-maps the first 1 GiB using 2 MiB pages.
  */
 extern uint64_t page_table_l4[];
 
-void kernel_main(void)
-{
+void kernel_main(uint32_t multiboot_info_address){
     tss_init();
-
     serial_init();
-
     pic_remap();
 
     /*
      * Physical Memory Manager
      */
-    pmm_init(multiboot_info);
+    pmm_init(multiboot_info_address);
 
     serial_write_str("Testing PMM...\n");
 
     uint64_t free_before = pmm_get_free_pages();
 
     uint64_t test_page = pmm_alloc_page();
-
     if (test_page != 0)
     {
         serial_write_str("Allocated page: ");
@@ -146,7 +132,7 @@ void kernel_main(void)
     __asm__ volatile("sti");
 
     uint64_t last_tick = 0;
-
+    
     for (;;)
     {
         __asm__ volatile("hlt");

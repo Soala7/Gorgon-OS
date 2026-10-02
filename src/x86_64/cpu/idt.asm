@@ -295,13 +295,13 @@ exception_handler:
     lea rdi, [rel exception_vector_message]
     call serial_write_str
 
-    mov rdi, [rsp + 128]
+    mov rdi, [rsp + 120]
     call serial_write_hex
 
     lea rdi, [rel exception_error_message]
     call serial_write_str
 
-    mov rdi, [rsp + 138]
+    mov rdi, [rsp + 128]
     call serial_write_hex
 
     lea rdi, [rel newline_message]

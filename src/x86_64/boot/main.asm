@@ -4,7 +4,7 @@ extern long_mode_start
 global multiboot_info
 extern gdt_load
 
-section .text
+section .boot.text
 bits 32
 
 start:
@@ -18,8 +18,12 @@ start:
     call check_cpu_long
     call setup_page_table
     call enable_page_table
+    call enable_nxe
+    call enable_write_protect
     call gdt_load
 
+    ; long_mode_start is deliberately kept in the low bootstrap
+    ; region so this 32-bit far jump remains valid.
     jmp 0x08:long_mode_start
 
     hlt
@@ -82,32 +86,76 @@ check_cpu_long:
 
 
 setup_page_table:
-    ; PML4[0] -> PDPT
-    mov eax, page_table_l3
-    or eax, 0b11
-    mov [page_table_l4], eax
+    ; --------------------------------------------------------
+    ; Identity mapping
+    ;
+    ; PML4[0] -> page_table_l3_identity
+    ; PDPT[0] -> page_table_l2_identity
+    ;
+    ; 512 x 2 MiB = first 1 GiB
+    ; --------------------------------------------------------
 
-    ; PDPT[0] -> PD
-    mov eax, page_table_l2
+    mov eax, page_table_l3_identity
     or eax, 0b11
-    mov [page_table_l3], eax
+    mov [page_table_l4 + 0 * 8], eax
 
-    ; Create 512 x 2 MiB identity mappings.
-    ; 512 * 2 MiB = 1 GiB.
+    mov eax, page_table_l2_identity
+    or eax, 0b11
+    mov [page_table_l3_identity + 0 * 8], eax
+
     xor ecx, ecx
 
-.loop:
+.identity_loop:
     mov eax, 0x200000
     mul ecx
 
-    ; Present + writable + page-size (2 MiB)
+    ; Present + writable + 2 MiB page
     or eax, 0b10000011
 
-    mov [page_table_l2 + ecx * 8], eax
+    mov [page_table_l2_identity + ecx * 8], eax
 
     inc ecx
     cmp ecx, 512
-    jne .loop
+    jne .identity_loop
+
+
+    ; --------------------------------------------------------
+    ; Higher-half mapping
+    ;
+    ; PML4[511] -> page_table_l3_high
+    ; PDPT[0]   -> page_table_l2_high
+    ;
+    ; Virtual:
+    ;   0xFFFFFFFF80000000
+    ;
+    ; Physical:
+    ;   0x00000000
+    ;
+    ; 512 x 2 MiB = first 1 GiB
+    ; --------------------------------------------------------
+
+    mov eax, page_table_l3_high
+    or eax, 0b11
+    mov [page_table_l4 + 511 * 8], eax
+
+    mov eax, page_table_l2_high
+    or eax, 0b11
+    mov [page_table_l3_high + 510 * 8], eax
+
+    xor ecx, ecx
+
+.high_loop:
+    mov eax, 0x200000
+    mul ecx
+
+    ; Present + writable + 2 MiB page
+    or eax, 0b10000011
+
+    mov [page_table_l2_high + ecx * 8], eax
+
+    inc ecx
+    cmp ecx, 512
+    jne .high_loop
 
     ret
 
@@ -137,6 +185,26 @@ enable_page_table:
     ret
 
 
+enable_nxe:
+    mov ecx, 0xC0000080
+    rdmsr
+
+    or eax, 1 << 11
+
+    wrmsr
+
+    ret
+
+
+enable_write_protect:
+    mov eax, cr0
+    or eax, 1 << 16
+
+    mov cr0, eax
+
+    ret
+
+
 error:
     mov dword [0xb8000], 0x4f524f45
     mov dword [0xb8004], 0x4f324f52
@@ -150,25 +218,39 @@ error:
     jmp .hang
 
 
-section .bss
+; ------------------------------------------------------------
+; Bootstrap data
+;
+; These objects MUST remain in low physical memory because
+; 32-bit bootstrap code accesses them before the higher-half
+; transition.
+; ------------------------------------------------------------
 
-align 4096
+section .boot.bss nobits
+
+alignb 4096
 
 global page_table_l4
 
 page_table_l4:
     resb 4096
 
-page_table_l3:
+page_table_l3_identity:
     resb 4096
 
-page_table_l2:
+page_table_l2_identity:
+    resb 4096
+
+page_table_l3_high:
+    resb 4096
+
+page_table_l2_high:
     resb 4096
 
 multiboot_info:
     resd 1
 
-align 16
+alignb 16
 
 start_stack:
     resb 4096 * 4
