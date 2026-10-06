@@ -28,9 +28,8 @@ uint64_t vmm_get_pte(
 );
 
 void vmm_init(uint64_t *bootstrap_pml4);
-
-void vmm_switch_address_space(uint64_t *pml4);
-
+void vmm_switch_address_space(uint64_t pml4_phys);
 uint64_t *vmm_get_current_pml4(void);
+uint64_t vmm_get_current_pml4_phys(void);
 
 #endif

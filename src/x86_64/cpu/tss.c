@@ -1,5 +1,6 @@
 #include "tss.h"
 #include "gdt.h"
+#include "../../kernel/serial.h"
 #include <stdint.h>
 
 #define TSS_IST1_STACK_SIZE 4096
@@ -41,39 +42,60 @@ _Static_assert(
  * into an unrecoverable triple fault instead of a readable panic.
  */
 static uint8_t df_stack[TSS_IST1_STACK_SIZE]
-    __attribute__((aligned(16)));
+__attribute__((aligned(16)));
 
 static tss_t kernel_tss;
 
-/*
- * gdt_tss_descriptor lives in the low bootstrap region.
- *
- * A normal C reference from the higher-half kernel would generate
- * an R_X86_64_PC32 relocation, which cannot reach the low bootstrap
- * address. The descriptor address is therefore obtained from the
- * bootstrap address-space mapping instead.
- *
- * The GDT bootstrap region is identity mapped during early boot, so
- * this physical address can be accessed directly while that mapping
- * still exists.
- */
-#define GDT_TSS_DESCRIPTOR_PHYS 0x00100000ULL
-
-static volatile uint8_t *gdt_tss_descriptor =
-    (volatile uint8_t *)(uintptr_t)(GDT_TSS_DESCRIPTOR_PHYS + 0x2A);
-
-static void gdt_set_tss_base(uint64_t base){
-    gdt_tss_descriptor[2] = (uint8_t)(base & 0xFF);
-    gdt_tss_descriptor[3] = (uint8_t)((base >> 8) & 0xFF);
-    gdt_tss_descriptor[4] = (uint8_t)((base >> 16) & 0xFF);
-    gdt_tss_descriptor[7] = (uint8_t)((base >> 24) & 0xFF);
-    gdt_tss_descriptor[8] = (uint8_t)((base >> 32) & 0xFF);
-    gdt_tss_descriptor[9] = (uint8_t)((base >> 40) & 0xFF);
-    gdt_tss_descriptor[10] = (uint8_t)((base >> 48) & 0xFF);
-    gdt_tss_descriptor[11] = (uint8_t)((base >> 56) & 0xFF);
+static void gdt_set_tss_base(volatile uint8_t *descriptor, uint64_t base){
+    descriptor[2]  = (uint8_t)(base & 0xFF);
+    descriptor[3]  = (uint8_t)((base >> 8) & 0xFF);
+    descriptor[4]  = (uint8_t)((base >> 16) & 0xFF);
+    descriptor[7]  = (uint8_t)((base >> 24) & 0xFF);
+    descriptor[8]  = (uint8_t)((base >> 32) & 0xFF);
+    descriptor[9]  = (uint8_t)((base >> 40) & 0xFF);
+    descriptor[10] = (uint8_t)((base >> 48) & 0xFF);
+    descriptor[11] = (uint8_t)((base >> 56) & 0xFF);
 }
 
-void tss_init(void){
+/*
+ * Read the base address back out of a patched TSS descriptor, so
+ * tss_init() can prove to itself (and to the serial log) that the
+ * patch actually landed, instead of just hoping ltr() didn't fault.
+ */
+static uint64_t gdt_read_tss_base(volatile uint8_t *descriptor){
+    uint64_t base = 0;
+    base |= (uint64_t)descriptor[2];
+    base |= (uint64_t)descriptor[3]  << 8;
+    base |= (uint64_t)descriptor[4]  << 16;
+    base |= (uint64_t)descriptor[7]  << 24;
+    base |= (uint64_t)descriptor[8]  << 32;
+    base |= (uint64_t)descriptor[9]  << 40;
+    base |= (uint64_t)descriptor[10] << 48;
+    base |= (uint64_t)descriptor[11] << 56;
+    return base;
+}
+
+/*
+ * gdt_tss_descriptor_phys is the REAL physical address of
+ * gdt_tss_descriptor (in gdt.asm's .boot.data), passed in from
+ * main64.asm - which is still executing in the low bootstrap
+ * region - via a plain absolute mov-immediate.
+ *
+ * This is deliberate, not an inconvenience to work around later:
+ * a normal `extern` reference to that symbol from this high-half
+ * translation unit cannot reach it. GCC's default RIP-relative
+ * addressing for externs under -mcmodel=kernel emits an
+ * R_X86_64_PC32 relocation, and the distance between the kernel's
+ * high-half link address and the low bootstrap region exceeds what
+ * a 32-bit PC-relative displacement can encode ("relocation
+ * truncated to fit") - the same failure multiboot_info hit earlier
+ * in the higher-half transition. Receiving the address as a plain
+ * integer parameter sidesteps that entirely, with no hardcoded
+ * offset anywhere in this file.
+ */
+void tss_init(uint64_t gdt_tss_descriptor_phys){
+    volatile uint8_t *gdt_tss_descriptor = (volatile uint8_t *)(uintptr_t)gdt_tss_descriptor_phys;
+
     kernel_tss.ist1 = (uint64_t)(df_stack + sizeof(df_stack));
 
     /*
@@ -82,13 +104,32 @@ void tss_init(void){
      */
     kernel_tss.iomap_base = sizeof(tss_t);
 
-    gdt_set_tss_base(
-        (uint64_t)&kernel_tss
-    );
+    gdt_set_tss_base(gdt_tss_descriptor, (uint64_t)&kernel_tss);
 
     __asm__ volatile(
         "ltr %0"
         :
         : "r"((uint16_t)GDT_SELECTOR_TSS)
     );
+
+    uint64_t patched_base  = gdt_read_tss_base(gdt_tss_descriptor);
+    uint64_t expected_base = (uint64_t)&kernel_tss;
+
+    serial_write_str("TSS descriptor: ");
+    serial_write_hex(gdt_tss_descriptor_phys);
+    serial_write_str("\n");
+
+    serial_write_str("TSS base:       ");
+    serial_write_hex(patched_base);
+    serial_write_str("\n");
+
+    serial_write_str("TSS expected:   ");
+    serial_write_hex(expected_base);
+    serial_write_str("\n");
+
+    if (patched_base == expected_base){
+        serial_write_str("TSS: PASS\n");
+    }else{
+        serial_write_str("TSS: FAIL\n");
+    }
 }

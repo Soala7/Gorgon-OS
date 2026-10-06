@@ -12,17 +12,24 @@ extern serial_write_hex
 section .text
 bits 64
 
+; ------------------------------------------------------------
+; IDT initialization
+; ------------------------------------------------------------
+
 idt_load:
-    ; Fill vectors 33-255 with per-vector generic interrupt stubs
-    ; (vectors 0-31 are filled by the exception loop below, and
-    ; vector 32 is overridden with the timer stub afterward).
+    ; Fill vectors 33-255 with per-vector generic interrupt stubs.
+    ;
+    ; Vectors 0-31 are installed separately as CPU exception
+    ; handlers below. Vector 32 is installed as the PIT timer
+    ; interrupt after the exception handlers are configured.
     xor ecx, ecx
 
 .fill_generic:
     mov rax, [generic_stub_table + rcx * 8]
     mov rdx, idt
 
-    ; IDT entry index is (rcx + 33). Each entry is 16 bytes.
+    ; IDT entry index = vector number.
+    ; Each IDT entry is 16 bytes.
     lea rdx, [rdx + rcx * 8]
     lea rdx, [rdx + rcx * 8]
     add rdx, 33 * 16
@@ -44,7 +51,9 @@ idt_load:
     jne .fill_generic
 
 
+    ; --------------------------------------------------------
     ; Install exception handlers for vectors 0-31.
+    ; --------------------------------------------------------
 
     xor ecx, ecx
 
@@ -75,20 +84,25 @@ idt_load:
     jne .exception_loop
 
 
-    ; FIX: #DF (vector 8) runs on its own dedicated stack via
-    ; IST1, set up in tss.c's tss_init(). The exception_loop
-    ; above set every vector's IST field to 0 uniformly; this
-    ; overrides just vector 8's entry.
+    ; --------------------------------------------------------
+    ; Double Fault (#DF = vector 8)
+    ; --------------------------------------------------------
     ;
-    ; NOTE: tss_init() must run (and call ltr) before this IST=1
-    ; setting can safely take effect - TR has to point at a valid
-    ; TSS before any interrupt with IST!=0 can fire.
+    ; Vector 8 uses IST1 so that a double fault receives a
+    ; dedicated stack supplied by the TSS.
+    ;
+    ; tss_init() must have loaded the TSS with LTR before an
+    ; interrupt using IST1 can safely occur.
+    ;
+
     mov rdx, idt
     add rdx, 8 * 16
     mov byte [rdx + 4], 1
 
 
-    ; IRQ0 -> interrupt vector 32.
+    ; --------------------------------------------------------
+    ; IRQ0 -> interrupt vector 32
+    ; --------------------------------------------------------
 
     mov rax, interrupt_stub_32
 
@@ -122,29 +136,30 @@ timer_interrupt:
 
     ; Save all general-purpose registers.
     ;
-    ; The resulting stack layout matches:
+    ; After these 15 pushes, RSP points to the beginning of
+    ; interrupt_context_t:
     ;
-    ; interrupt_context_t
+    ; +0    r15
+    ; +8    r14
+    ; +16   r13
+    ; +24   r12
+    ; +32   r11
+    ; +40   r10
+    ; +48   r9
+    ; +56   r8
+    ; +64   rbp
+    ; +72   rdi
+    ; +80   rsi
+    ; +88   rdx
+    ; +96   rcx
+    ; +104  rbx
+    ; +112  rax
+    ; +120  vector
+    ; +128  RIP
+    ; +136  CS
+    ; +144  RFLAGS
     ;
-    ; r15
-    ; r14
-    ; r13
-    ; r12
-    ; r11
-    ; r10
-    ; r9
-    ; r8
-    ; rbp
-    ; rdi
-    ; rsi
-    ; rdx
-    ; rcx
-    ; rbx
-    ; rax
-    ; vector
-    ; rip
-    ; cs
-    ; rflags
+    ; The CPU does not push an error code for IRQ0.
 
     push rax
     push rbx
@@ -166,20 +181,13 @@ timer_interrupt:
     mov rdi, rsp
     call timer_tick
 
-    ; Scheduler is currently disabled.
-    ; timer_tick returns NULL, so no context switch occurs.
-
-    ; IRQ0 -> send EOI to the master PIC.
-    ;
-    ; FIX: pic_send_eoi(unsigned char irq) takes its argument in
-    ; dil/edi per the System V AMD64 ABI, not al. The previous
-    ; "mov al, 0" wrote the wrong register, so pic_send_eoi's
-    ; internal "irq >= 8" check was reading whatever garbage
-    ; timer_tick left in rdi.
     xor edi, edi
     call pic_send_eoi
 
-    ; Restore registers.
+
+    ; --------------------------------------------------------
+    ; Restore registers
+    ; --------------------------------------------------------
 
     pop r15
     pop r14
@@ -197,7 +205,7 @@ timer_interrupt:
     pop rbx
     pop rax
 
-    ; Remove the interrupt vector pushed by interrupt_stub_32.
+    ; Remove the vector pushed by interrupt_stub_32.
     add rsp, 8
 
     iretq
@@ -205,15 +213,6 @@ timer_interrupt:
 
 ; ------------------------------------------------------------
 ; Generic interrupt handler
-;
-; FIX: now prints the vector number before halting, instead of
-; hanging silently. The vector was already being lost twice over
-; before this change - once because interrupt_stub_generic
-; hardcoded 255 regardless of the real vector, and again because
-; nothing printed it even if it had been correct. Both are fixed
-; together: each vector 33-255 now has its own stub (see
-; generic_stub_table below), and this handler reports whichever
-; one fired.
 ; ------------------------------------------------------------
 
 interrupt_handler:
@@ -235,10 +234,6 @@ interrupt_handler:
     push r14
     push r15
 
-    ; Same stack layout as exception_handler: [rsp + 120] is the
-    ; vector pushed by the stub. IRQs/generic interrupts have no
-    ; CPU-pushed error code, so there is nothing at +128 to print.
-
     lea rdi, [rel interrupt_vector_message]
     call serial_write_str
 
@@ -247,6 +242,7 @@ interrupt_handler:
 
     lea rdi, [rel newline_message]
     call serial_write_str
+
 
 .generic_interrupt_hang:
     hlt
@@ -259,6 +255,37 @@ interrupt_handler:
 
 exception_handler:
     cli
+
+    ; Save all general-purpose registers.
+    ;
+    ; After these 15 pushes, the normalized exception frame is:
+    ;
+    ; +0    r15
+    ; +8    r14
+    ; +16   r13
+    ; +24   r12
+    ; +32   r11
+    ; +40   r10
+    ; +48   r9
+    ; +56   r8
+    ; +64   rbp
+    ; +72   rdi
+    ; +80   rsi
+    ; +88   rdx
+    ; +96   rcx
+    ; +104  rbx
+    ; +112  rax
+    ; +120  exception vector
+    ; +128  error code
+    ; +136  RIP
+    ; +144  CS
+    ; +152  RFLAGS
+    ;
+    ; For exceptions where the CPU does not push an error code,
+    ; the stub pushes a synthetic zero error code.
+    ;
+    ; For exceptions where the CPU does push an error code,
+    ; the stub leaves that CPU-pushed value in the same position.
 
     push rax
     push rbx
@@ -276,10 +303,6 @@ exception_handler:
     push r14
     push r15
 
-    ; All exception stubs normalize the stack so:
-    ;
-    ; [rsp + 128] = exception vector
-    ; [rsp + 138] = error code
 
     ; --------------------------------------------------------
     ; Check for Page Fault (#PF = vector 14)
@@ -287,6 +310,7 @@ exception_handler:
 
     cmp qword [rsp + 120], 14
     je page_fault_handler
+
 
     ; --------------------------------------------------------
     ; Generic exception reporting
@@ -307,6 +331,7 @@ exception_handler:
     lea rdi, [rel newline_message]
     call serial_write_str
 
+
 .exception_hang:
     hlt
     jmp .exception_hang
@@ -318,10 +343,11 @@ exception_handler:
 
 page_fault_handler:
 
-    ; Read CR2 immediately.
+    ; CR2 contains the virtual address that caused the page fault.
+    ; Read it immediately before calling any other code.
+
     mov rax, cr2
 
-    ; Preserve CR2 while serial functions execute.
     push rax
 
     lea rdi, [rel page_fault_message]
@@ -342,20 +368,27 @@ page_fault_handler:
     lea rdi, [rel newline_message]
     call serial_write_str
 
+    ; Remove saved CR2.
     add rsp, 8
+
 
 .page_fault_hang:
     hlt
     jmp .page_fault_hang
+
+
 ; ------------------------------------------------------------
 ; Exception stubs
 ; ------------------------------------------------------------
 
-; Exceptions where the CPU does NOT automatically push
-; an error code.
+; Exceptions where the CPU does NOT automatically push an
+; error code.
 ;
-; We manually push a zero error code so that every exception
-; has the same normalized stack layout.
+; Push a synthetic zero error code so that every exception
+; reaches exception_handler with the same normalized layout:
+;
+; [rsp + 120] = vector
+; [rsp + 128] = error code
 
 %macro EXCEPTION_NO_ERROR 1
 exception_stub_%1:
@@ -365,11 +398,15 @@ exception_stub_%1:
 %endmacro
 
 
-; Exceptions where the CPU automatically pushes an
-; error code.
+; Exceptions where the CPU automatically pushes an error code.
 ;
-; Only the vector is added here because the CPU already
-; supplied the error code.
+; The CPU's error code is already present, so only the vector
+; is pushed here.
+;
+; After entering exception_handler:
+;
+; [rsp + 120] = vector
+; [rsp + 128] = CPU-pushed error code
 
 %macro EXCEPTION_ERROR 1
 exception_stub_%1:
@@ -387,19 +424,18 @@ interrupt_stub_32:
     jmp timer_interrupt
 
 
-; Per-vector generic interrupt stubs for 33-255.
-;
-; FIX: previously a single interrupt_stub_generic pushed a
-; hardcoded 255 for every one of these vectors, so the real
-; vector number was destroyed before interrupt_handler ever saw
-; it. Each vector now gets its own tiny stub that pushes its own
-; number, exactly like the exception stubs already did.
+; ------------------------------------------------------------
+; Per-vector generic interrupt stubs
+; Vectors 33-255
+; ------------------------------------------------------------
 
 %assign i 33
 %rep (256 - 33)
+
 interrupt_stub_%+i:
     push qword i
     jmp interrupt_handler
+
 %assign i i + 1
 %endrep
 
@@ -494,7 +530,8 @@ exception_stub_table:
 
 
 ; ------------------------------------------------------------
-; Generic interrupt stub table (vectors 33-255)
+; Generic interrupt stub table
+; Vectors 33-255
 ; ------------------------------------------------------------
 
 generic_stub_table:
@@ -529,7 +566,7 @@ idt_pointer:
 
 
 ; ------------------------------------------------------------
-; Exception messages
+; Diagnostic messages
 ; ------------------------------------------------------------
 
 section .rodata
@@ -544,7 +581,7 @@ interrupt_vector_message:
     db "Unhandled interrupt vector: 0x", 0
 
 page_fault_message:
-    db "Page Fault: PASS", 10, 0
+    db "Page Fault", 10, 0
 
 page_fault_address_message:
     db "Fault address: 0x", 0

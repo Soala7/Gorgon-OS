@@ -8,7 +8,6 @@
 
 #include "../x86_64/cpu/pic.h"
 #include "../x86_64/cpu/timer.h"
-#include "../x86_64/cpu/tss.h"
 
 /*
  * Bootstrap PML4 created by main.asm.
@@ -18,7 +17,6 @@
 extern uint64_t page_table_l4[];
 
 void kernel_main(uint32_t multiboot_info_address){
-    tss_init();
     serial_init();
     pic_remap();
 
