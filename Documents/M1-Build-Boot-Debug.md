@@ -51,6 +51,11 @@ dist/x86_64/kernel.bin
 dist/x86_64/gorgon.iso
 ```
 
+Run `make check` to compile and assemble every kernel source and link the
+kernel in an isolated `build/check/` directory. This checks the C, NASM, and
+linker-script inputs without replacing the checked-in build artifacts.
+`make` builds the bootable ISO, and `make run` launches it in QEMU.
+
 The linker currently reports:
 
 ```text

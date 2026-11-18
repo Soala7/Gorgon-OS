@@ -5,33 +5,20 @@
 #include "../x86_64/memory/pmm.h"
 #include "../x86_64/memory/vmm.h"
 #include "../x86_64/memory/heap.h"
-
 #include "../x86_64/cpu/pic.h"
 #include "../x86_64/cpu/timer.h"
 
-/*
- * Bootstrap PML4 created by main.asm.
- *
- * It currently identity-maps the first 1 GiB using 2 MiB pages.
- */
 extern uint64_t page_table_l4[];
 
 void kernel_main(uint32_t multiboot_info_address){
     serial_init();
     pic_remap();
-
-    /*
-     * Physical Memory Manager
-     */
     pmm_init(multiboot_info_address);
-
     serial_write_str("Testing PMM...\n");
-
     uint64_t free_before = pmm_get_free_pages();
-
     uint64_t test_page = pmm_alloc_page();
-    if (test_page != 0)
-    {
+
+    if (test_page != 0){
         serial_write_str("Allocated page: ");
         serial_write_hex(test_page);
         serial_write_str("\n");
@@ -40,12 +27,10 @@ void kernel_main(uint32_t multiboot_info_address){
         serial_write_hex(pmm_get_free_pages());
         serial_write_str("\n");
 
-        if (pmm_get_free_pages() == free_before - 1)
-        {
+        if (pmm_get_free_pages() == free_before - 1){
             serial_write_str("PMM alloc count: PASS\n");
         }
-        else
-        {
+        else{
             serial_write_str("PMM alloc count: FAIL\n");
         }
 
@@ -68,17 +53,14 @@ void kernel_main(uint32_t multiboot_info_address){
             serial_write_str("PMM free count: FAIL\n");
         }
     }
-    else
-    {
+    else{
         serial_write_str("PMM allocation failed.\n");
     }
 
     serial_write_str("PMM test complete.\n");
 
     /*
-     * Virtual Memory Manager
-     *
-     * vmm_init() currently:
+     * Vmm_init() currently:
      *
      *   1. Uses the bootstrap PML4.
      *   2. Tests 4 KiB mapping.

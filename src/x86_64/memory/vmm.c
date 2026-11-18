@@ -12,6 +12,9 @@
 #define VMM_HUGE_PAGE_SIZE 0x200000ULL
 #define VMM_PAGE_SIZE_FLAG (1ULL << 7)
 
+/* Matches the bootstrap's own 512 x 2 MiB identity-mapped range (see M3). */
+#define BOOTSTRAP_IDENTITY_LIMIT (512ULL * VMM_HUGE_PAGE_SIZE)
+
 /*
  * current_pml4 is a physmap VIRTUAL pointer, for C-side table
  * walks. CR3 always gets the raw PHYSICAL value separately - the
@@ -28,6 +31,102 @@ static void zero_table(uint64_t *table){
 
 static inline uint64_t *phys_to_virt(uint64_t physical_address){
     return (uint64_t *)(VMM_PHYSMAP_BASE + physical_address);
+}
+
+/*
+ * Treat a physical address as directly dereferenceable because the
+ * bootstrap's own 1 GiB identity map (VA == PA) is still active.
+ * Valid ONLY before vmm_switch_address_space() runs and ONLY for
+ * addresses inside that 1 GiB range - phys_to_virt()/physmap isn't
+ * live yet at that point, so this is the sole legal way to touch a
+ * freshly allocated page here. Halts rather than silently
+ * corrupting memory if the PMM ever hands back a frame outside the
+ * identity window (e.g. once the PMM can allocate beyond 1 GiB).
+ */
+static inline uint64_t *boot_identity_ptr(uint64_t physical_address){
+    if (physical_address >= BOOTSTRAP_IDENTITY_LIMIT){
+        serial_write_str("VMM: bootstrap page outside identity map: ");
+        serial_write_hex(physical_address);
+        serial_write_str("\n");
+        __asm__ volatile("cli; hlt");
+    }
+
+    return (uint64_t *)physical_address;
+}
+
+/*
+ * Free every page a clone_pdpt() call allocated: each present,
+ * non-huge PD referenced by the PDPT, then the PDPT page itself.
+ * Safe to call on a partially built clone - zero_table() means any
+ * entry the loop hasn't reached yet is just absent, not freed twice.
+ */
+static void free_cloned_pdpt(uint64_t pdpt_phys){
+    uint64_t *pdpt = boot_identity_ptr(pdpt_phys);
+
+    for (uint64_t i = 0; i < 512; i++)
+        if ((pdpt[i] & VMM_PRESENT) && !(pdpt[i] & VMM_PAGE_SIZE_FLAG))
+            pmm_free_page(pdpt[i] & TABLE_ADDRESS_MASK);
+
+    pmm_free_page(pdpt_phys);
+}
+
+/*
+  Clone a bootstrap PDPT so Gorgon's PML4 doesn't alias live
+  bootstrap page tables. A present entry with VMM_PAGE_SIZE_FLAG
+  set is a 1 GiB mapping with no PD underneath, so it's copied
+  as-is. A present, non-huge entry gets a freshly allocated PD;
+  each of ITS entries must be absent or a 2 MiB mapping - a PDE
+  pointing to a 4 KiB PT would still be shared, which this clone
+  doesn't support yet, so that case fails cleanly instead of
+  silently returning a hierarchy that looks independent but isn't.
+  On any failure, everything this call allocated is freed and it
+  returns 0.
+ */
+static uint64_t clone_pdpt(uint64_t bootstrap_pdpt_phys){
+    uint64_t new_pdpt_phys = pmm_alloc_page();
+
+    if (new_pdpt_phys == 0)
+        return 0;
+
+    uint64_t *bootstrap_pdpt = boot_identity_ptr(bootstrap_pdpt_phys);
+    uint64_t *new_pdpt = boot_identity_ptr(new_pdpt_phys);
+    zero_table(new_pdpt);
+
+    for (uint64_t i = 0; i < 512; i++){
+        uint64_t entry = bootstrap_pdpt[i];
+
+        if (!(entry & VMM_PRESENT) || (entry & VMM_PAGE_SIZE_FLAG)){
+            new_pdpt[i] = entry;
+            continue;
+        }
+
+        uint64_t new_pd_phys = pmm_alloc_page();
+
+        if (new_pd_phys == 0){
+            free_cloned_pdpt(new_pdpt_phys);
+            return 0;
+        }
+
+        uint64_t *bootstrap_pd = boot_identity_ptr(entry & TABLE_ADDRESS_MASK);
+        uint64_t *new_pd = boot_identity_ptr(new_pd_phys);
+
+        for (uint64_t k = 0; k < 512; k++){
+            uint64_t pde = bootstrap_pd[k];
+
+            if ((pde & VMM_PRESENT) && !(pde & VMM_PAGE_SIZE_FLAG)){
+                /* Unsupported: this PDE points to a shared 4 KiB PT. */
+                pmm_free_page(new_pd_phys);
+                free_cloned_pdpt(new_pdpt_phys);
+                return 0;
+            }
+
+            new_pd[k] = pde;
+        }
+
+        new_pdpt[i] = new_pd_phys | (entry & ~TABLE_ADDRESS_MASK);
+    }
+
+    return new_pdpt_phys;
 }
 
 /*
@@ -64,7 +163,7 @@ static uint64_t *split_large_page(uint64_t *pd, uint64_t index){
         return 0;
 
     if (!(old_entry & VMM_PAGE_SIZE_FLAG))
-        return (uint64_t *)(old_entry & TABLE_ADDRESS_MASK);
+        return phys_to_virt(old_entry & TABLE_ADDRESS_MASK);
 
     uint64_t new_pt_phys = pmm_alloc_page();
 
@@ -105,25 +204,29 @@ static uint64_t *get_or_create_table(uint64_t *table, uint64_t index, uint64_t f
  * Temporary bootstrap physmap: VA 0xFFFF800000000000 -> PA 0,
  * 1 GiB, 2 MiB pages (PML4[256], matches the current PMM 1 GiB cap).
  *
- * Runs before the CR3 switch, so pml4/pdpt/pd here are accessed as
- * raw identity-mapped physical pointers - valid only because they're
- * all within the bootstrap's existing low-memory identity map.
+ * Runs before the CR3 switch, so pml4/pdpt/pd here are accessed
+ * through boot_identity_ptr() - valid only because the bootstrap
+ * identity map is still active and the allocated pages are
+ * guaranteed (checked) to land below 1 GiB.
  */
 static int vmm_map_physmap(uint64_t *pml4){
     uint64_t pdpt_phys = pmm_alloc_page();
-    uint64_t pd_phys = pmm_alloc_page();
 
-    if (pdpt_phys == 0 || pd_phys == 0)
+    if (pdpt_phys == 0)
         return -1;
 
-    uint64_t *pdpt = (uint64_t *)pdpt_phys;
-    uint64_t *pd = (uint64_t *)pd_phys;
+    uint64_t pd_phys = pmm_alloc_page();
 
-    for (int i = 0; i < 512; i++)
-        pdpt[i] = 0;
+    if (pd_phys == 0){
+        pmm_free_page(pdpt_phys);
+        return -1;
+    }
 
-    for (int i = 0; i < 512; i++)
-        pd[i] = 0;
+    uint64_t *pdpt = boot_identity_ptr(pdpt_phys);
+    uint64_t *pd = boot_identity_ptr(pd_phys);
+
+    zero_table(pdpt);
+    zero_table(pd);
 
     pml4[256] = pdpt_phys | VMM_PRESENT | VMM_WRITABLE;
     pdpt[0] = pd_phys | VMM_PRESENT | VMM_WRITABLE;
@@ -261,15 +364,20 @@ uint64_t vmm_get_pte(uint64_t *pml4, uint64_t virtual_address){
 
 /*
  * M4B - give Gorgon its own PML4:
- *   1. Allocate + zero a new PML4 (built via raw identity-mapped
- *      access - physmap isn't live yet at this point).
- *   2. Copy the bootstrap PML4 entries into it.
+ *   1. Allocate + zero a new PML4 (via boot_identity_ptr() -
+ *      physmap isn't live yet at this point).
+ *   2. Clone PML4[0] (low identity map) AND PML4[511] (high-half
+ *      kernel map) into fresh PDPTs/PDs, rather than aliasing
+ *      either - the bootstrap's own tables stay untouched and
+ *      independently modifiable from Gorgon's from here on. The
+ *      mapped physical kernel pages themselves are still shared,
+ *      which is expected at this stage.
  *   3. Build the temporary 1 GiB physmap inside it.
  *   4. Switch CR3 - physmap is live from here on.
  *   5. From here on, address the PML4 through phys_to_virt(),
- *      never through the raw identity-mapped pointer - that
- *      pointer only keeps working while the identity map exists,
- *      and removing it is the end goal.
+ *      never through boot_identity_ptr() - that helper is only
+ *      valid while the bootstrap identity map exists, and removing
+ *      it is the end goal.
  */
 void vmm_init(uint64_t *bootstrap_pml4){
     serial_write_str("Initializing Gorgon address space...\n");
@@ -281,30 +389,82 @@ void vmm_init(uint64_t *bootstrap_pml4){
         return;
     }
 
-    uint64_t *new_pml4 = (uint64_t *)new_pml4_phys;
+    uint64_t *new_pml4 = boot_identity_ptr(new_pml4_phys);
     zero_table(new_pml4);
 
     serial_write_str("VMM: new PML4 allocated: ");
     serial_write_hex(new_pml4_phys);
     serial_write_str("\n");
 
-    for (int i = 0; i < 512; i++)
-        new_pml4[i] = bootstrap_pml4[i];
+    uint64_t cloned_low_pdpt_phys = 0;
+    uint64_t cloned_high_pdpt_phys = 0;
+
+    if (bootstrap_pml4[0] & VMM_PRESENT){
+        cloned_low_pdpt_phys = clone_pdpt(bootstrap_pml4[0] & TABLE_ADDRESS_MASK);
+
+        if (cloned_low_pdpt_phys == 0){
+            serial_write_str("VMM: low PDPT clone FAILED\n");
+            pmm_free_page(new_pml4_phys);
+            return;
+        }
+
+        new_pml4[0] = cloned_low_pdpt_phys | (bootstrap_pml4[0] & ~TABLE_ADDRESS_MASK);
+        serial_write_str("VMM: low PDPT cloned.\n");
+    }
+
+    if (bootstrap_pml4[511] & VMM_PRESENT){
+        cloned_high_pdpt_phys = clone_pdpt(bootstrap_pml4[511] & TABLE_ADDRESS_MASK);
+
+        if (cloned_high_pdpt_phys == 0){
+            serial_write_str("VMM: high PDPT clone FAILED\n");
+
+            if (cloned_low_pdpt_phys)
+                free_cloned_pdpt(cloned_low_pdpt_phys);
+
+            pmm_free_page(new_pml4_phys);
+            return;
+        }
+
+        new_pml4[511] = cloned_high_pdpt_phys | (bootstrap_pml4[511] & ~TABLE_ADDRESS_MASK);
+        serial_write_str("VMM: high PDPT cloned.\n");
+    }
 
     if (vmm_map_physmap(new_pml4) != 0){
         serial_write_str("VMM: physmap creation FAILED\n");
+
+        if (cloned_high_pdpt_phys)
+            free_cloned_pdpt(cloned_high_pdpt_phys);
+
+        if (cloned_low_pdpt_phys)
+            free_cloned_pdpt(cloned_low_pdpt_phys);
+
+        pmm_free_page(new_pml4_phys);
         return;
     }
 
     serial_write_str("VMM: physmap created.\n");
+
+    /* Prove the clone is structurally independent before switching:
+     * the new PDPT physical addresses must differ from the
+     * bootstrap's own. Equality here would mean clone_pdpt() quietly
+     * handed back the original page instead of a copy. */
+    if (cloned_low_pdpt_phys && cloned_low_pdpt_phys == (bootstrap_pml4[0] & TABLE_ADDRESS_MASK))
+        serial_write_str("VMM low PDPT independent: FAIL\n");
+    else if (cloned_low_pdpt_phys)
+        serial_write_str("VMM low PDPT independent: PASS\n");
+
+    if (cloned_high_pdpt_phys && cloned_high_pdpt_phys == (bootstrap_pml4[511] & TABLE_ADDRESS_MASK))
+        serial_write_str("VMM high PDPT independent: FAIL\n");
+    else if (cloned_high_pdpt_phys)
+        serial_write_str("VMM high PDPT independent: PASS\n");
 
     vmm_switch_address_space(new_pml4_phys);
 
     serial_write_str("VMM: switched to new address space.\n");
 
     /* All table access below goes through vmm_get_current_pml4()
-     * (a physmap pointer), never the raw new_pml4/new_pml4_phys
-     * used to build the table above. */
+     * (a physmap pointer), never boot_identity_ptr() or the raw
+     * new_pml4/new_pml4_phys used to build the table above. */
     uint64_t *pml4 = vmm_get_current_pml4();
 
     uint64_t physmap_test_phys = pmm_alloc_page();
